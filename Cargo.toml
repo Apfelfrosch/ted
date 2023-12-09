@@ -5,3 +5,5 @@ edition = "2021"
 description = "ted - the tiny editor"
 
 [dependencies]
+ratatui = "0.24.0"
+ropey = "1.6.1"
