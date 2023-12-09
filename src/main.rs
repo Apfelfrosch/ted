@@ -37,6 +37,19 @@ impl Editor {
         }
     }
 
+    pub fn append_at_line(&mut self, line: Line, text: &str) {
+        let line = line.0;
+        let len_lines = self.text.len_lines();
+
+        let idx = if line == len_lines - 1 {
+            self.text.line(line).len_chars()
+        } else {
+            self.text.line(line).len_chars() - 1
+        };
+
+        self.insert_at(Line(line), Char(idx), text);
+    }
+
     fn combine_line_and_char(&self, line: Line, char: Char) -> usize {
         self.text.line_to_char(line.0) + char.0
     }
@@ -63,6 +76,21 @@ mod tests {
         text_assert_eq(&editor, "\nHe\n\nllo, I have been inserted!\n\n\n");
         editor.insert_at(Line(0), Char(0), "Inserted At The Beginning");
         text_assert_eq(&editor, "Inserted At The Beginning\nHe\n\nllo, I have been inserted!\n\n\n");
+        editor.append_at_line(Line(0), " and this was appended");
+        text_assert_eq(&editor, "Inserted At The Beginning and this was appended\nHe\n\nllo, I have been inserted!\n\n\n");
+    }
+
+    #[test]
+    fn append_empty_text() {
+        let mut editor = Editor {
+            text: Rope::from_str(""),
+        };
+
+        text_assert_eq(&editor, "");
+        editor.append_at_line(Line(0), "Not empty anymore");
+        text_assert_eq(&editor, "Not empty anymore");
+        editor.append_at_line(Line(0), " more text");
+        text_assert_eq(&editor, "Not empty anymore more text");
     }
 
     fn text_assert_eq(actual: &Editor, expected: &str) {
