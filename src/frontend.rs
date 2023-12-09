@@ -32,7 +32,7 @@ pub fn run_frontend() -> Result<(), Box<dyn Error>> {
     }
 
     stderr().execute(LeaveAlternateScreen)?;
-    disable_raw_mode();
+    disable_raw_mode()?;
 
     Ok(())
 }
