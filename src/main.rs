@@ -91,6 +91,8 @@ mod tests {
         text_assert_eq(&editor, "Not empty anymore");
         editor.append_at_line(Line(0), " more text");
         text_assert_eq(&editor, "Not empty anymore more text");
+        editor.append_new_lines(1);
+        text_assert_eq(&editor, "Not empty anymore more text\n");
     }
 
     fn text_assert_eq(actual: &Editor, expected: &str) {
