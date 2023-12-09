@@ -1,7 +1,11 @@
 use std::{error::Error, io::stderr, time::Duration};
 
-use crossterm::{ExecutableCommand, terminal::{EnterAlternateScreen, enable_raw_mode, LeaveAlternateScreen, disable_raw_mode}, event::{self, KeyEventKind, KeyCode}};
-use ratatui::{Terminal, prelude::CrosstermBackend};
+use crossterm::{
+    event::{self, KeyCode, KeyEventKind},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
+};
+use ratatui::{prelude::CrosstermBackend, Terminal};
 
 fn initialize_panic_hook() {
     let original_hook = std::panic::take_hook();
@@ -36,4 +40,3 @@ pub fn run_frontend() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-

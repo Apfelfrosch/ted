@@ -1,4 +1,4 @@
-use std::{io::{BufReader}, fs::File, error::Error};
+use std::{error::Error, fs::File, io::BufReader};
 
 use ropey::Rope;
 
@@ -15,7 +15,6 @@ struct Line(usize);
 struct Char(usize);
 
 impl Editor {
-
     pub fn insert_at(&mut self, line: Line, char_index: Char, to_insert: &str) -> bool {
         if line.0 >= self.text.len_lines() {
             return false;
@@ -55,7 +54,6 @@ impl Editor {
     fn combine_line_and_char(&self, line: Line, char: Char) -> usize {
         self.text.line_to_char(line.0) + char.0
     }
-
 }
 
 #[cfg(test)]
@@ -77,7 +75,10 @@ mod tests {
         editor.append_new_lines(3);
         text_assert_eq(&editor, "\nHe\n\nllo, I have been inserted!\n\n\n");
         editor.insert_at(Line(0), Char(0), "Inserted At The Beginning");
-        text_assert_eq(&editor, "Inserted At The Beginning\nHe\n\nllo, I have been inserted!\n\n\n");
+        text_assert_eq(
+            &editor,
+            "Inserted At The Beginning\nHe\n\nllo, I have been inserted!\n\n\n",
+        );
         editor.append_at_line(Line(0), " and this was appended");
         text_assert_eq(&editor, "Inserted At The Beginning and this was appended\nHe\n\nllo, I have been inserted!\n\n\n");
     }
@@ -100,11 +101,12 @@ mod tests {
     fn text_assert_eq(actual: &Editor, expected: &str) {
         assert_eq!(actual.text.to_string(), expected);
     }
-
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut test_text = Editor { text: Rope::from_reader(BufReader::new(File::open("test_text.txt")?))? };
+    let mut test_text = Editor {
+        text: Rope::from_reader(BufReader::new(File::open("test_text.txt")?))?,
+    };
     test_text.insert_at(Line(0), Char(2), "Hallo ich wurde inserted!");
     test_text.append_new_lines(1);
     test_text.append_new_lines(2);
