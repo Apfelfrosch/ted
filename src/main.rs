@@ -1,6 +1,8 @@
-use std::{io::{Error, BufReader}, fs::File};
+use std::{io::{BufReader}, fs::File, error::Error};
 
 use ropey::Rope;
+
+mod frontend;
 
 #[derive(Debug)]
 struct Editor {
@@ -101,12 +103,15 @@ mod tests {
 
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut test_text = Editor { text: Rope::from_reader(BufReader::new(File::open("test_text.txt")?))? };
     test_text.insert_at(Line(0), Char(2), "Hallo ich wurde inserted!");
     test_text.append_new_lines(1);
     test_text.append_new_lines(2);
     test_text.insert_new_line(Line(0), Char(5), 1);
     dbg!(test_text);
+
+    frontend::run_frontend()?;
+
     Ok(())
 }
