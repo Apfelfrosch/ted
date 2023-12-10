@@ -66,7 +66,7 @@ impl Default for Window {
         Window {
             ident: "Window".to_string(),
             e: Editor {
-                text: Rope::from_str("SOME TEXT"),
+                text: Rope::from_str("SOME TEXT\nLine 2\nLine 3"),
             },
             scroll_x: 0,
             scroll_y: 0,
