@@ -1,5 +1,5 @@
 use crossterm::{
-    event::{self, KeyCode, KeyEventKind},
+    event::{self, KeyCode, KeyEvent, KeyEventKind},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
@@ -16,7 +16,11 @@ use std::{
     time::{Duration, Instant},
 };
 
-use self::{app::App, window::Window};
+use self::{
+    app::{App, Mode},
+    dialog::Dialog,
+    window::Window,
+};
 use crate::log::Log;
 mod app;
 mod dialog;
@@ -51,6 +55,58 @@ fn centered_rect(r: Rect, percent_x: u16, percent_y: u16) -> Rect {
         .split(popup_layout[1])[1]
 }
 
+fn process_keys(event: KeyEvent, app: &mut App) -> bool {
+    match event.kind {
+        KeyEventKind::Press => {
+            match event.code {
+                KeyCode::Esc if app.current_dialog.is_some() => app.current_dialog = None,
+
+                KeyCode::Enter if app.current_mode.is_insert() => {
+                    if let Some(sw) = app.selected_window_mut() {
+                        // TODO: SUPPORT CRLN
+                        sw.e.text.insert_char(sw.cursor_char_index, '\n');
+                        sw.cursor_char_index += 1;
+                        sw.cursor_visual_pos_x = 0;
+                        sw.cursor_visual_pos_y += 1;
+                    }
+                }
+                KeyCode::Backspace if app.current_mode.is_insert() => {
+                    if let Some(sw) = app.selected_window_mut() {
+                        if sw.cursor_char_index != 0 {
+                            let current_char = sw.e.text.char(sw.cursor_char_index);
+                            if current_char == '\n' {
+                                return false;
+                            }
+                            sw.e.text
+                                .remove(sw.cursor_char_index..=sw.cursor_char_index);
+                            sw.cursor_char_index -= 1;
+
+                            let current_char = sw.e.text.char(sw.cursor_char_index);
+                            sw.cursor_visual_pos_x -=
+                                unicode_width::UnicodeWidthChar::width(current_char).unwrap_or(1);
+                        }
+                    }
+                }
+                KeyCode::Esc if app.current_mode.is_insert() => app.current_mode = Mode::Normal,
+                KeyCode::Char(c) if app.current_mode.is_normal() => match c {
+                    'i' => app.current_mode = Mode::Insert,
+                    'q' => return true,
+                    'L' if app.current_dialog.is_none() => {
+                        app.current_dialog = Some(Dialog::LogDisplay {
+                            slice_start: 0,
+                            selected: 0,
+                        })
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+        _ => {}
+    }
+    false
+}
+
 pub fn run() -> Result<(), Box<dyn Error>> {
     initialize_panic_hook();
 
@@ -63,11 +119,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut app = App {
         edit_windows: vec![Window::default()],
         selected_window: 0,
-        current_dialog: Some(dialog::Dialog::LogDisplay {
-            slice_start: 0,
-            selected: 0,
-        }),
+        current_dialog: None,
         log: Log::new(),
+        current_mode: Mode::Normal,
     };
     let mut fps = 0;
 
@@ -100,7 +154,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             }
 
             //frame.render_widget(Paragraph::new(lines), layout[1]);
-            frame.render_widget(Paragraph::new(Line::from("STATUS")), layout[1]);
+            frame.render_widget(
+                Paragraph::new(Line::from(app.current_mode.display_name())),
+                layout[1],
+            );
         })?;
         let frontend_instance = &mut app.edit_windows[app.selected_window];
         let mut elapsed = now.elapsed().as_micros();
@@ -111,82 +168,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         if event::poll(Duration::from_millis(100))? {
             if let event::Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
-                    if let KeyCode::Char(c) = key.code {
-                        match c {
-                            'q' => break,
-                            'd' => {
-                                app.edit_windows.pop();
-                            }
-                            'n' => {
-                                let mut w = Window::default();
-                                w.ident = format!("Window #{}", len_instances + 1);
-                                app.edit_windows.push(w);
-                            }
-                            'w' => app.selected_window += 1,
-                            'l' => {
-                                if frontend_instance.e.text.len_chars() == 0
-                                    || frontend_instance.cursor_char_index
-                                        == frontend_instance.e.text.len_chars() - 1
-                                {
-                                    app.log.log("At the end (cmd: l)");
-                                    continue;
-                                }
-
-                                let char_under_cursor = frontend_instance
-                                    .e
-                                    .text
-                                    .get_char(frontend_instance.cursor_char_index);
-                                if let Some(char_under_cursor) = char_under_cursor {
-                                    let next_char = frontend_instance
-                                        .e
-                                        .text
-                                        .get_char(frontend_instance.cursor_char_index + 1);
-                                    if let Some(next_char) = next_char {
-                                        let mut found_line_end = false;
-                                        if next_char == '\r' {
-                                            if let Some(next_next_char) = frontend_instance
-                                                .e
-                                                .text
-                                                .get_char(frontend_instance.cursor_char_index + 2)
-                                            {
-                                                if next_next_char == '\n' {
-                                                    app.log.log("\\r\\n Found (cmd: l)");
-                                                    found_line_end = true;
-                                                }
-                                            }
-                                        } else if next_char == '\n' {
-                                            app.log.log("\\n Found (cmd: l)");
-                                            found_line_end = true;
-                                        }
-
-                                        if !found_line_end {
-                                            frontend_instance.cursor_char_index += 1;
-                                            frontend_instance.cursor_visual_pos_x +=
-                                                unicode_width::UnicodeWidthChar::width(
-                                                    char_under_cursor,
-                                                )
-                                                .unwrap_or(1);
-                                        }
-                                    } else {
-                                        app.log.log("Could not get next char (cmd: l)");
-                                    }
-                                } else {
-                                    app.log.log("Could not get char under cursor (cmd: l)");
-                                }
-                            }
-                            any => {
-                                app.log.log(any.to_string());
-                                frontend_instance
-                                    .e
-                                    .text
-                                    .insert_char(frontend_instance.cursor_char_index, any);
-                                frontend_instance.cursor_visual_pos_x +=
-                                    unicode_width::UnicodeWidthChar::width(any).unwrap_or(1);
-                                frontend_instance.cursor_char_index += 1;
-                            }
-                        }
-                    }
+                if process_keys(key, &mut app) {
+                    break;
                 }
             }
         }
