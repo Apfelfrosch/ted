@@ -24,13 +24,13 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                 }
                 KeyCode::Backspace if app.current_mode.is_insert() => {
                     if let Some(sw) = app.selected_window_mut() {
-                        if sw.cursor_char_index != 0 {
-                            let current_char = sw.e.text.char(sw.cursor_char_index);
+                        if sw.cursor_char_index > 0 {
+                            let current_char = sw.e.text.char(sw.cursor_char_index - 1);
                             if current_char == '\n' {
                                 return false;
                             }
                             sw.e.text
-                                .remove(sw.cursor_char_index..=sw.cursor_char_index);
+                                .remove((sw.cursor_char_index - 1)..sw.cursor_char_index);
                             sw.cursor_char_index -= 1;
                         }
                     }
