@@ -112,6 +112,9 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                                 selected: 0,
                             })
                         }
+                        'H' if app.current_dialog.is_none() => {
+                            app.current_dialog = Some(Dialog::Help)
+                        }
                         _ => {}
                     }
                 }

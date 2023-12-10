@@ -10,6 +10,7 @@ use super::app::App;
 
 pub enum Dialog {
     LogDisplay { slice_start: usize, selected: usize },
+    Help,
 }
 
 impl Dialog {
@@ -37,6 +38,34 @@ impl Dialog {
                     .title_style(Style::new().fg(ratatui::style::Color::Yellow))
                     .borders(Borders::all());
                 terminal.render_widget(Paragraph::new(lines).block(block), area);
+            }
+            Dialog::Help => {
+                let block = Block::default()
+                    .title("Help")
+                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
+                    .borders(Borders::all());
+                terminal.render_widget(
+                    Paragraph::new(
+                        [
+                            "Normal Mode",
+                            "q - quit",
+                            "L - display log",
+                            "H - display this help",
+                            "i - go into insert mode",
+                            "h - go right",
+                            "j - go down",
+                            "k - go up",
+                            "l - go right",
+                            "<Esc> - close dialogs",
+                        ]
+                        .iter()
+                        .map(ToString::to_string)
+                        .map(Line::from)
+                        .collect::<Vec<Line>>(),
+                    )
+                    .block(block),
+                    area,
+                );
             }
         }
     }
