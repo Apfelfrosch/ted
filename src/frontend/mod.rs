@@ -17,6 +17,7 @@ use std::{
 
 use self::window::Window;
 use crate::log::Log;
+mod app;
 mod window;
 
 fn initialize_panic_hook() {
@@ -52,16 +53,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         terminal.draw(|frame| {
             let layout = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Percentage(80),
-                    Constraint::Percentage(20),
-                    Constraint::Min(1),
-                ])
+                .constraints([Constraint::Percentage(100), Constraint::Min(1)])
                 .split(frame.size());
-            frame.set_cursor(
-                instances[selected_instance].cursor_visual_pos_x as u16,
-                instances[selected_instance].cursor_visual_pos_y as u16,
-            );
 
             let mut contraints_instances = Vec::new();
             let size_per_instance = 100 / len_instances;
@@ -75,6 +68,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             for idx in 0..len_instances {
                 instances[idx].render(frame, instances_layout[idx]);
             }
+            instances[selected_instance].render_cursor(frame, instances_layout[selected_instance]);
 
             let mut lines: Vec<Line> = log
                 .take_lines(layout[1].height as usize)
@@ -82,8 +76,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 .collect();
             lines.insert(0, Line::from(format!("FPS: {fps}")));
 
-            frame.render_widget(Paragraph::new(lines), layout[1]);
-            frame.render_widget(Paragraph::new(Line::from("STATUS")), layout[2]);
+            //frame.render_widget(Paragraph::new(lines), layout[1]);
+            frame.render_widget(Paragraph::new(Line::from("STATUS")), layout[1]);
         })?;
         let frontend_instance = &mut instances[selected_instance];
         let mut elapsed = now.elapsed().as_micros();
@@ -102,8 +96,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                                 instances.pop();
                             }
                             'n' => {
-                                instances.push(Window::default());
+                                let mut w = Window::default();
+                                w.ident = format!("Window #{}", len_instances + 1);
+                                instances.push(w);
                             }
+                            'w' => selected_instance += 1,
                             'l' => {
                                 if frontend_instance.e.text.len_chars() == 0
                                     || frontend_instance.cursor_char_index

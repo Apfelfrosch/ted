@@ -1,9 +1,15 @@
-use ratatui::{layout::Rect, text::Line, widgets::Paragraph, Frame};
+use ratatui::{
+    layout::Rect,
+    text::Line,
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
 use ropey::Rope;
 
 use crate::editor::Editor;
 
 pub struct Window {
+    pub ident: String,
     pub e: Editor,
     pub scroll_x: usize,
     pub scroll_y: usize,
@@ -37,13 +43,28 @@ impl Window {
                 acc.push(Line::from(line_string.replace('\n', "␊")));
                 acc
             });
-        terminal.render_widget(Paragraph::new(v), layout_rect);
+        terminal.render_widget(
+            Paragraph::new(v).block(
+                Block::default()
+                    .title(Line::from(self.ident.as_str()))
+                    .borders(Borders::all()),
+            ),
+            layout_rect,
+        );
+    }
+
+    pub fn render_cursor(&self, terminal: &mut Frame<'_>, layout_rect: Rect) {
+        // +1 because of border
+        let cx = layout_rect.x + self.cursor_visual_pos_x as u16 + 1;
+        let cy = layout_rect.y + self.cursor_visual_pos_y as u16 + 1;
+        terminal.set_cursor(cx, cy);
     }
 }
 
 impl Default for Window {
     fn default() -> Self {
         Window {
+            ident: "Window".to_string(),
             e: Editor {
                 text: Rope::from_str("SOME TEXT"),
             },

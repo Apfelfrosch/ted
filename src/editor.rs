@@ -61,9 +61,7 @@ impl Editor {
 mod tests {
     use ropey::Rope;
 
-    
-
-    use super::{Editor, LineIndex, CharIndex};
+    use super::{CharIndex, Editor, LineIndex};
 
     #[test]
     fn editor_test() {
