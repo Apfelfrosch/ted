@@ -37,6 +37,18 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                 }
                 KeyCode::Esc if app.current_mode.is_insert() => app.current_mode = Mode::Normal,
                 KeyCode::Char(c)
+                    if app.current_mode.is_insert() && app.current_dialog.is_none() =>
+                {
+                    match c {
+                        any => {
+                            if let Some(sw) = app.selected_window_mut() {
+                                sw.e.text.insert_char(sw.cursor_char_index, any);
+                                sw.cursor_char_index += 1;
+                            }
+                        }
+                    }
+                }
+                KeyCode::Char(c)
                     if app.current_mode.is_normal() && app.current_dialog.is_none() =>
                 {
                     match c {
