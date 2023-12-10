@@ -4,6 +4,7 @@ use crossterm::{
     ExecutableCommand,
 };
 use ratatui::{
+    layout::Rect,
     prelude::{Constraint, CrosstermBackend, Direction, Layout},
     text::Line,
     widgets::Paragraph,
@@ -15,9 +16,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use self::window::Window;
+use self::{app::App, window::Window};
 use crate::log::Log;
 mod app;
+mod dialog;
 mod window;
 
 fn initialize_panic_hook() {
@@ -29,6 +31,26 @@ fn initialize_panic_hook() {
     }));
 }
 
+fn centered_rect(r: Rect, percent_x: u16, percent_y: u16) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
+}
+
 pub fn run() -> Result<(), Box<dyn Error>> {
     initialize_panic_hook();
 
@@ -38,17 +60,19 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
     terminal.clear()?;
 
-    let mut instances = Vec::new();
-    instances.push(Window::default());
-
-    #[allow(unused_mut)]
-    let mut selected_instance = 0;
-
-    let mut log = Log::new();
+    let mut app = App {
+        edit_windows: vec![Window::default()],
+        selected_window: 0,
+        current_dialog: Some(dialog::Dialog::LogDisplay {
+            slice_start: 0,
+            selected: 0,
+        }),
+        log: Log::new(),
+    };
     let mut fps = 0;
 
     loop {
-        let len_instances = instances.len();
+        let len_instances = app.edit_windows.len();
         let now = Instant::now();
         terminal.draw(|frame| {
             let layout = Layout::default()
@@ -66,20 +90,19 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 .constraints(contraints_instances)
                 .split(layout[0]);
             for idx in 0..len_instances {
-                instances[idx].render(frame, instances_layout[idx]);
+                app.edit_windows[idx].render(frame, instances_layout[idx]);
             }
-            instances[selected_instance].render_cursor(frame, instances_layout[selected_instance]);
+            app.edit_windows[app.selected_window]
+                .render_cursor(frame, instances_layout[app.selected_window]);
 
-            let mut lines: Vec<Line> = log
-                .take_lines(layout[1].height as usize)
-                .map(Line::from)
-                .collect();
-            lines.insert(0, Line::from(format!("FPS: {fps}")));
+            if let Some(dialog) = &app.current_dialog {
+                dialog.render(&app, frame, centered_rect(frame.size(), 50, 50));
+            }
 
             //frame.render_widget(Paragraph::new(lines), layout[1]);
             frame.render_widget(Paragraph::new(Line::from("STATUS")), layout[1]);
         })?;
-        let frontend_instance = &mut instances[selected_instance];
+        let frontend_instance = &mut app.edit_windows[app.selected_window];
         let mut elapsed = now.elapsed().as_micros();
         if elapsed == 0 {
             elapsed = 1;
@@ -93,20 +116,20 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                         match c {
                             'q' => break,
                             'd' => {
-                                instances.pop();
+                                app.edit_windows.pop();
                             }
                             'n' => {
                                 let mut w = Window::default();
                                 w.ident = format!("Window #{}", len_instances + 1);
-                                instances.push(w);
+                                app.edit_windows.push(w);
                             }
-                            'w' => selected_instance += 1,
+                            'w' => app.selected_window += 1,
                             'l' => {
                                 if frontend_instance.e.text.len_chars() == 0
                                     || frontend_instance.cursor_char_index
                                         == frontend_instance.e.text.len_chars() - 1
                                 {
-                                    log.log("At the end (cmd: l)");
+                                    app.log.log("At the end (cmd: l)");
                                     continue;
                                 }
 
@@ -128,12 +151,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                                                 .get_char(frontend_instance.cursor_char_index + 2)
                                             {
                                                 if next_next_char == '\n' {
-                                                    log.log("\\r\\n Found (cmd: l)");
+                                                    app.log.log("\\r\\n Found (cmd: l)");
                                                     found_line_end = true;
                                                 }
                                             }
                                         } else if next_char == '\n' {
-                                            log.log("\\n Found (cmd: l)");
+                                            app.log.log("\\n Found (cmd: l)");
                                             found_line_end = true;
                                         }
 
@@ -146,13 +169,22 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                                                 .unwrap_or(1);
                                         }
                                     } else {
-                                        log.log("Could not get next char (cmd: l)");
+                                        app.log.log("Could not get next char (cmd: l)");
                                     }
                                 } else {
-                                    log.log("Could not get char under cursor (cmd: l)");
+                                    app.log.log("Could not get char under cursor (cmd: l)");
                                 }
                             }
-                            _any => {}
+                            any => {
+                                app.log.log(any.to_string());
+                                frontend_instance
+                                    .e
+                                    .text
+                                    .insert_char(frontend_instance.cursor_char_index, any);
+                                frontend_instance.cursor_visual_pos_x +=
+                                    unicode_width::UnicodeWidthChar::width(any).unwrap_or(1);
+                                frontend_instance.cursor_char_index += 1;
+                            }
                         }
                     }
                 }
