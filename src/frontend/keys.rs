@@ -20,8 +20,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                         // TODO: SUPPORT CRLN
                         sw.e.text.insert_char(sw.cursor_char_index, '\n');
                         sw.cursor_char_index += 1;
-                        sw.cursor_visual_pos_x = 0;
-                        sw.cursor_visual_pos_y += 1;
                     }
                 }
                 KeyCode::Backspace if app.current_mode.is_insert() => {
@@ -34,10 +32,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                             sw.e.text
                                 .remove(sw.cursor_char_index..=sw.cursor_char_index);
                             sw.cursor_char_index -= 1;
-
-                            let current_char = sw.e.text.char(sw.cursor_char_index);
-                            sw.cursor_visual_pos_x -=
-                                unicode_width::UnicodeWidthChar::width(current_char).unwrap_or(1);
                         }
                     }
                 }
@@ -60,9 +54,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                                     return false;
                                 }
                                 sw.cursor_char_index += 1;
-                                sw.cursor_visual_pos_x +=
-                                    unicode_width::UnicodeWidthChar::width(current_char)
-                                        .unwrap_or(1);
                             }
                         }
                         'h' => {
@@ -76,8 +67,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                                     return false;
                                 }
                                 sw.cursor_char_index -= 1;
-                                sw.cursor_visual_pos_x -=
-                                    unicode_width::UnicodeWidthChar::width(prev_char).unwrap_or(1);
                             }
                         }
                         'j' => {
@@ -88,8 +77,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                                     return false;
                                 }
                                 let start_of_next_line = text.line_to_char(current_line_index + 1);
-                                sw.cursor_visual_pos_x = 0;
-                                sw.cursor_visual_pos_y += 1;
                                 sw.cursor_char_index = start_of_next_line;
                             }
                         }
@@ -101,8 +88,6 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                                     return false;
                                 }
                                 let start_of_prev_line = text.line_to_char(current_line_index - 1);
-                                sw.cursor_visual_pos_x = 0;
-                                sw.cursor_visual_pos_y -= 1;
                                 sw.cursor_char_index = start_of_prev_line;
                             }
                         }
