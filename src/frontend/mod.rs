@@ -24,6 +24,7 @@ use self::{
 use crate::log::Log;
 mod app;
 mod dialog;
+mod keys;
 mod window;
 
 fn initialize_panic_hook() {
@@ -53,58 +54,6 @@ fn centered_rect(r: Rect, percent_x: u16, percent_y: u16) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
-}
-
-fn process_keys(event: KeyEvent, app: &mut App) -> bool {
-    match event.kind {
-        KeyEventKind::Press => {
-            match event.code {
-                KeyCode::Esc if app.current_dialog.is_some() => app.current_dialog = None,
-
-                KeyCode::Enter if app.current_mode.is_insert() => {
-                    if let Some(sw) = app.selected_window_mut() {
-                        // TODO: SUPPORT CRLN
-                        sw.e.text.insert_char(sw.cursor_char_index, '\n');
-                        sw.cursor_char_index += 1;
-                        sw.cursor_visual_pos_x = 0;
-                        sw.cursor_visual_pos_y += 1;
-                    }
-                }
-                KeyCode::Backspace if app.current_mode.is_insert() => {
-                    if let Some(sw) = app.selected_window_mut() {
-                        if sw.cursor_char_index != 0 {
-                            let current_char = sw.e.text.char(sw.cursor_char_index);
-                            if current_char == '\n' {
-                                return false;
-                            }
-                            sw.e.text
-                                .remove(sw.cursor_char_index..=sw.cursor_char_index);
-                            sw.cursor_char_index -= 1;
-
-                            let current_char = sw.e.text.char(sw.cursor_char_index);
-                            sw.cursor_visual_pos_x -=
-                                unicode_width::UnicodeWidthChar::width(current_char).unwrap_or(1);
-                        }
-                    }
-                }
-                KeyCode::Esc if app.current_mode.is_insert() => app.current_mode = Mode::Normal,
-                KeyCode::Char(c) if app.current_mode.is_normal() => match c {
-                    'i' => app.current_mode = Mode::Insert,
-                    'q' => return true,
-                    'L' if app.current_dialog.is_none() => {
-                        app.current_dialog = Some(Dialog::LogDisplay {
-                            slice_start: 0,
-                            selected: 0,
-                        })
-                    }
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
-        _ => {}
-    }
-    false
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -168,7 +117,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         if event::poll(Duration::from_millis(100))? {
             if let event::Event::Key(key) = event::read()? {
-                if process_keys(key, &mut app) {
+                if keys::process_keys(key, &mut app) {
                     break;
                 }
             }
