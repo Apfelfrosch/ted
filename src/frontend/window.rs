@@ -5,7 +5,8 @@ use std::{
 
 use ratatui::{
     layout::Rect,
-    text::Line,
+    style::{Color, Style},
+    text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
@@ -49,9 +50,10 @@ impl Window {
 
                 line_buf.push_str(&idx.to_string());
                 line_buf.push(' ');
+                let line_span = Span::styled(line_buf, Style::new().fg(Color::Yellow));
 
                 if self.scroll_x >= element.len_chars() {
-                    acc.push(Line::from(line_buf));
+                    acc.push(Line::from(line_span));
                     return acc;
                 }
 
@@ -64,11 +66,10 @@ impl Window {
                                     line_string.pop();
                                 }
                 */
-                acc.push(Line::from(format!(
-                    "{}{}",
-                    line_buf,
-                    line_string.replace('\n', "␊")
-                )));
+                acc.push(Line::from(vec![
+                    line_span,
+                    Span::styled(line_string.replace('\n', "␊"), Style::new()),
+                ]));
                 acc
             });
         terminal.render_widget(
