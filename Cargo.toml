@@ -10,3 +10,7 @@ crossterm = "0.27.0"
 ratatui = "0.24.0"
 ropey = "1.6.1"
 unicode-width = "0.1.11"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
