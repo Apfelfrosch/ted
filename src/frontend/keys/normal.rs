@@ -21,23 +21,12 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         if sw.cursor_char_index + 1 >= sw.e.text.len_chars() {
                             return false;
                         }
-
-                        let current_char = sw.e.text.char(sw.cursor_char_index);
-                        let next_char = sw.e.text.char(sw.cursor_char_index + 1);
-                        if next_char == '\n' || next_char == '\r' {
-                            return false;
-                        }
                         sw.cursor_char_index += 1;
                     }
                 }
                 'h' => {
                     if let Some(sw) = app.selected_window_mut() {
                         if sw.cursor_char_index == 0 {
-                            return false;
-                        }
-
-                        let prev_char = sw.e.text.char(sw.cursor_char_index - 1);
-                        if prev_char == '\n' {
                             return false;
                         }
                         sw.cursor_char_index -= 1;

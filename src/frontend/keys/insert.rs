@@ -7,7 +7,6 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
         match event.code {
             KeyCode::Enter => {
                 if let Some(sw) = app.selected_window_mut() {
-                    // TODO: SUPPORT CRLN
                     sw.e.text.insert_char(sw.cursor_char_index, '\n');
                     sw.cursor_char_index += 1;
                 }
@@ -15,10 +14,6 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
             KeyCode::Backspace => {
                 if let Some(sw) = app.selected_window_mut() {
                     if sw.cursor_char_index > 0 {
-                        let current_char = sw.e.text.char(sw.cursor_char_index - 1);
-                        if current_char == '\n' {
-                            return false;
-                        }
                         sw.e.text
                             .remove((sw.cursor_char_index - 1)..sw.cursor_char_index);
                         sw.cursor_char_index -= 1;
