@@ -15,6 +15,7 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         char_idx: 0,
                     }
                 }
+                'a' => app.selected_window = if app.selected_window == 0 { 1 } else { 0 },
                 'i' => app.current_mode = Mode::Insert,
                 'l' => {
                     if let Some(sw) = app.selected_window_mut() {

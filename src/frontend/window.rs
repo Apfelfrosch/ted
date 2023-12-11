@@ -146,7 +146,10 @@ impl Window {
             cursor_x += width;
         }
         cursor_x -= to_remove;
-        terminal.set_cursor(cursor_x as u16, cursor_y as u16);
+        terminal.set_cursor(
+            layout_rect.x + cursor_x as u16,
+            layout_rect.y + cursor_y as u16,
+        );
     }
 }
 
