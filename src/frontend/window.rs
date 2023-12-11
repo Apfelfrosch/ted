@@ -3,6 +3,8 @@ use std::{
     io::{BufRead, BufReader},
 };
 
+use chrono::format;
+use crossterm::style::Stylize;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
@@ -45,6 +47,20 @@ impl Window {
 
         if current_line_index > max_line_seen {
             self.scroll_y += current_line_index - max_line_seen;
+        }
+
+        let current_line_start = self.e.text.line_to_char(current_line_index);
+        let line_offset = self.cursor_char_index - current_line_start;
+
+        self.ident = format!("{current_line_start} {line_offset} {}", layout_rect.width);
+
+        let l = layout_rect.width as usize - max_lines as usize - 1 - 3;
+        if line_offset > l + self.scroll_x {
+            self.scroll_x += line_offset - l - self.scroll_x;
+        }
+
+        if line_offset < self.scroll_x {
+            self.scroll_x -= self.scroll_x - line_offset;
         }
 
         let v = self
@@ -119,11 +135,17 @@ impl Window {
 
         let cursor_y = current_line - self.scroll_y + 1;
         let mut cursor_x = (1 + visual_length_of_number(self.e.text.len_lines()) + 1) as usize;
+        let mut to_remove = 0;
         for i in 0..(self.cursor_char_index - current_line_start) {
-            cursor_x +=
+            let width =
                 unicode_width::UnicodeWidthChar::width(self.e.text.char(current_line_start + i))
                     .unwrap_or(1);
+            if i < self.scroll_x {
+                to_remove += width;
+            }
+            cursor_x += width;
         }
+        cursor_x -= to_remove;
         terminal.set_cursor(cursor_x as u16, cursor_y as u16);
     }
 }
