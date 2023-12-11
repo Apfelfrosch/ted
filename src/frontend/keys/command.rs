@@ -1,3 +1,5 @@
+use std::{fs::File, io::BufWriter};
+
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 
 use crate::frontend::app::{App, Mode};
@@ -7,8 +9,26 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
         match event.code {
             KeyCode::Esc => app.current_mode = Mode::Normal,
             KeyCode::Enter => {
-                if let Mode::Command { buffer, .. } = &app.current_mode {
+                let text = app.selected_window().unwrap().e.text.clone();
+                if let Mode::Command { buffer, .. } = &mut app.current_mode {
                     app.log.log(format!("Executing {buffer}..."));
+
+                    if buffer.is_empty() {
+                        return false;
+                    }
+
+                    if buffer.starts_with("q") {
+                        return true;
+                    }
+
+                    if buffer.starts_with("w") {
+                        if let Some((_, arg)) = buffer.split_once(" ") {
+                            app.log.log(format!("Writing to {arg}"));
+                            text.write_to(BufWriter::new(File::create(arg).unwrap()))
+                                .unwrap();
+                        }
+                    }
+
                     app.current_mode = Mode::Normal;
                 } else {
                     app.log.log("Error: Not in command mode");

@@ -28,6 +28,14 @@ pub struct App {
 }
 
 impl App {
+    pub fn selected_window(&self) -> Option<&'_ Window> {
+        if self.edit_windows.is_empty() {
+            None
+        } else {
+            Some(&self.edit_windows[self.selected_window])
+        }
+    }
+
     pub fn selected_window_mut(&mut self) -> Option<&'_ mut Window> {
         if self.edit_windows.is_empty() {
             None
