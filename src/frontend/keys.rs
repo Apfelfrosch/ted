@@ -112,6 +112,9 @@ pub fn process_keys(event: KeyEvent, app: &mut App) -> bool {
                         'H' if app.current_dialog.is_none() => {
                             app.current_dialog = Some(Dialog::Help)
                         }
+                        'W' if app.current_dialog.is_none() => {
+                            app.current_dialog = Some(Dialog::Windows)
+                        }
                         _ => {}
                     }
                 }

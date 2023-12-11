@@ -11,12 +11,30 @@ use super::app::App;
 pub enum Dialog {
     LogDisplay { slice_start: usize, selected: usize },
     Help,
+    Windows,
 }
 
 impl Dialog {
     pub fn render(&self, app: &App, terminal: &mut Frame<'_>, area: Rect) {
         Clear.render(area, terminal.buffer_mut());
         match self {
+            Dialog::Windows => {
+                let block = Block::default()
+                    .title("Windows")
+                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
+                    .borders(Borders::all());
+                let mut lines = app
+                    .edit_windows
+                    .iter()
+                    .map(|w| w.ident.clone())
+                    .collect::<Vec<String>>();
+                lines.sort();
+                terminal.render_widget(
+                    Paragraph::new(lines.into_iter().map(Line::from).collect::<Vec<Line>>())
+                        .block(block),
+                    area,
+                );
+            }
             Dialog::LogDisplay {
                 slice_start,
                 selected,
