@@ -76,7 +76,12 @@ impl Window {
             Paragraph::new(v).block(
                 Block::default()
                     .title(Line::from(self.ident.as_str()))
-                    .borders(Borders::all()),
+                    .borders(Borders::all())
+                    .border_style(Style::default().fg(if is_selected {
+                        Color::Red
+                    } else {
+                        Color::White
+                    })),
             ),
             layout_rect,
         );

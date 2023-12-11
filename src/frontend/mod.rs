@@ -66,7 +66,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     terminal.clear()?;
 
     let mut app = App {
-        edit_windows: Vec::new(),
+        edit_windows: vec![Default::default()],
         selected_window: 0,
         log: Log::new(),
         current_mode: Mode::Normal,
