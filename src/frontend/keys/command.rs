@@ -10,7 +10,6 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
             KeyCode::Esc => app.current_mode = Mode::Normal,
             KeyCode::Enter => {
                 let old_mode = std::mem::replace(&mut app.current_mode, Mode::Normal);
-                let text = app.selected_window().unwrap().e.text.clone();
                 if let Mode::Command { buffer, .. } = old_mode {
                     app.log.log(format!("Executing {buffer}..."));
 
@@ -25,7 +24,11 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                     if buffer.starts_with("w") {
                         if let Some((_, arg)) = buffer.split_once(" ") {
                             app.log.log(format!("Writing to {arg}"));
-                            text.write_to(BufWriter::new(File::create(arg).unwrap()))
+                            app.selected_window()
+                                .unwrap()
+                                .e
+                                .text
+                                .write_to(BufWriter::new(File::create(arg).unwrap()))
                                 .unwrap();
                         }
                     }

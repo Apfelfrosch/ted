@@ -31,7 +31,7 @@ fn visual_length_of_number(i: usize) -> u32 {
 }
 
 impl Window {
-    pub fn render(&self, terminal: &mut Frame<'_>, layout_rect: Rect) {
+    pub fn render(&self, terminal: &mut Frame<'_>, layout_rect: Rect, is_selected: bool) {
         let max_lines = visual_length_of_number(self.e.text.len_lines());
 
         let v = self

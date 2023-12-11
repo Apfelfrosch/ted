@@ -66,12 +66,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     terminal.clear()?;
 
     let mut app = App {
-        edit_windows: vec![Window::default()],
+        edit_windows: Vec::new(),
         selected_window: 0,
         log: Log::new(),
         current_mode: Mode::Normal,
     };
-    let mut fps = 0;
 
     loop {
         let len_instances = app.edit_windows.len();
@@ -86,20 +85,26 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 ])
                 .split(frame.size());
 
-            let mut contraints_instances = Vec::new();
-            let size_per_instance = 100 / len_instances;
-            for _ in 0..len_instances {
-                contraints_instances.push(Constraint::Percentage(size_per_instance as u16));
+            if !app.edit_windows.is_empty() {
+                let mut contraints_instances = Vec::new();
+                let size_per_instance = 100 / len_instances;
+                for _ in 0..len_instances {
+                    contraints_instances.push(Constraint::Percentage(size_per_instance as u16));
+                }
+                let instances_layout = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints(contraints_instances)
+                    .split(layout[0]);
+                for idx in 0..len_instances {
+                    app.edit_windows[idx].render(
+                        frame,
+                        instances_layout[idx],
+                        idx == app.selected_window,
+                    );
+                }
+                app.edit_windows[app.selected_window]
+                    .render_cursor(frame, instances_layout[app.selected_window]);
             }
-            let instances_layout = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(contraints_instances)
-                .split(layout[0]);
-            for idx in 0..len_instances {
-                app.edit_windows[idx].render(frame, instances_layout[idx]);
-            }
-            app.edit_windows[app.selected_window]
-                .render_cursor(frame, instances_layout[app.selected_window]);
 
             if let Mode::Dialog {
                 which_one: current_dialog,
@@ -120,12 +125,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 layout[2],
             );
         })?;
-        let frontend_instance = &mut app.edit_windows[app.selected_window];
         let mut elapsed = now.elapsed().as_micros();
         if elapsed == 0 {
             elapsed = 1;
         }
-        fps = 1000000 / elapsed;
 
         if event::poll(Duration::from_millis(100))? {
             if let event::Event::Key(key) = event::read()? {
