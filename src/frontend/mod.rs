@@ -68,7 +68,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut app = App {
         edit_windows: vec![Window::default()],
         selected_window: 0,
-        current_dialog: None,
         log: Log::new(),
         current_mode: Mode::Normal,
     };
@@ -98,8 +97,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             app.edit_windows[app.selected_window]
                 .render_cursor(frame, instances_layout[app.selected_window]);
 
-            if let Some(dialog) = &app.current_dialog {
-                dialog.render(&app, frame, centered_rect(frame.size(), 50, 50));
+            if let Mode::Dialog {
+                which_one: current_dialog,
+            } = &app.current_mode
+            {
+                current_dialog.render(&app, frame, centered_rect(frame.size(), 50, 50));
             }
 
             //frame.render_widget(Paragraph::new(lines), layout[1]);

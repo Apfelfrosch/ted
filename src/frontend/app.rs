@@ -2,33 +2,18 @@ use crate::log::Log;
 
 use super::{dialog::Dialog, window::Window};
 
-#[derive(Debug, Clone, Copy)]
 pub enum Mode {
     Normal,
     Insert,
+    Dialog { which_one: Dialog },
 }
 
 impl Mode {
-    pub fn is_insert(&self) -> bool {
-        if let Mode::Insert = self {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn is_normal(&self) -> bool {
-        if let Mode::Normal = self {
-            true
-        } else {
-            false
-        }
-    }
-
     pub fn display_name(&self) -> &'static str {
-        match self {
+        match &self {
             Mode::Normal => "NORMAL",
             Mode::Insert => "INSERT",
+            Mode::Dialog { .. } => "DIALOG",
         }
     }
 }
@@ -36,7 +21,6 @@ impl Mode {
 pub struct App {
     pub edit_windows: Vec<Window>,
     pub selected_window: usize,
-    pub current_dialog: Option<Dialog>,
     pub log: Log,
     pub current_mode: Mode,
 }
