@@ -9,6 +9,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
         match event.code {
             KeyCode::Esc => app.current_mode = Mode::Normal,
             KeyCode::Enter => {
+                app.current_mode = Mode::Normal;
                 let text = app.selected_window().unwrap().e.text.clone();
                 if let Mode::Command { buffer, .. } = &mut app.current_mode {
                     app.log.log(format!("Executing {buffer}..."));
@@ -29,7 +30,6 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         }
                     }
 
-                    app.current_mode = Mode::Normal;
                 } else {
                     app.log.log("Error: Not in command mode");
                 }
