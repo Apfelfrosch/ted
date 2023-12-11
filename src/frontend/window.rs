@@ -31,8 +31,21 @@ fn visual_length_of_number(i: usize) -> u32 {
 }
 
 impl Window {
-    pub fn render(&self, terminal: &mut Frame<'_>, layout_rect: Rect, is_selected: bool) {
+    pub fn render(&mut self, terminal: &mut Frame<'_>, layout_rect: Rect, is_selected: bool) {
+        if layout_rect.height < 2 {
+            return;
+        }
         let max_lines = visual_length_of_number(self.e.text.len_lines());
+        let current_line_index = self.e.text.char_to_line(self.cursor_char_index);
+        let max_line_seen = self.scroll_y + layout_rect.height as usize - 3;
+
+        if current_line_index < self.scroll_y {
+            self.scroll_y -= self.scroll_y - current_line_index;
+        }
+
+        if current_line_index > max_line_seen {
+            self.scroll_y += current_line_index - max_line_seen;
+        }
 
         let v = self
             .e
@@ -41,6 +54,7 @@ impl Window {
             .enumerate()
             .take(layout_rect.height as usize)
             .fold(Vec::new(), |mut acc, (idx, element)| {
+                let idx = idx + self.scroll_y;
                 let mut line_buf = String::with_capacity(max_lines as usize + 1);
 
                 let idx = idx + 1;
@@ -98,6 +112,11 @@ impl Window {
         }
 
         let current_line_start = self.e.text.line_to_char(current_line);
+
+        if self.cursor_char_index - current_line_start < self.scroll_x {
+            return;
+        }
+
         let cursor_y = current_line - self.scroll_y + 1;
         let mut cursor_x = (1 + visual_length_of_number(self.e.text.len_lines()) + 1) as usize;
         for i in 0..(self.cursor_char_index - current_line_start) {
