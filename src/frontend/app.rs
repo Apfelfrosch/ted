@@ -6,6 +6,7 @@ pub enum Mode {
     Normal,
     Insert,
     Dialog { which_one: Dialog },
+    Command { buffer: String, char_idx: usize },
 }
 
 impl Mode {
@@ -14,6 +15,7 @@ impl Mode {
             Mode::Normal => "NORMAL",
             Mode::Insert => "INSERT",
             Mode::Dialog { .. } => "DIALOG",
+            Mode::Command { .. } => "COMMAND",
         }
     }
 }

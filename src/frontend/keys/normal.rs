@@ -9,6 +9,12 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
         match event.code {
             KeyCode::Char(c) => match c {
+                ':' => {
+                    app.current_mode = Mode::Command {
+                        buffer: String::new(),
+                        char_idx: 0,
+                    }
+                }
                 'i' => app.current_mode = Mode::Insert,
                 'q' => return true,
                 'l' => {

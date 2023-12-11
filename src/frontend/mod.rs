@@ -79,7 +79,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         terminal.draw(|frame| {
             let layout = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(100), Constraint::Min(1)])
+                .constraints([
+                    Constraint::Percentage(100),
+                    Constraint::Min(1),
+                    Constraint::Min(1),
+                ])
                 .split(frame.size());
 
             let mut contraints_instances = Vec::new();
@@ -105,9 +109,15 @@ pub fn run() -> Result<(), Box<dyn Error>> {
             }
 
             //frame.render_widget(Paragraph::new(lines), layout[1]);
+
+            if let Mode::Command { buffer, char_idx } = &app.current_mode {
+                frame.set_cursor((char_idx + 1) as u16, layout[1].y);
+                frame.render_widget(Paragraph::new(Line::from(format!(":{buffer}"))), layout[1]);
+            }
+
             frame.render_widget(
                 Paragraph::new(Line::from(app.current_mode.display_name())),
-                layout[1],
+                layout[2],
             );
         })?;
         let frontend_instance = &mut app.edit_windows[app.selected_window];
