@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufWriter};
+use std::{fs::File, io::BufWriter, mem::replace};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 
@@ -9,9 +9,9 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
         match event.code {
             KeyCode::Esc => app.current_mode = Mode::Normal,
             KeyCode::Enter => {
-                app.current_mode = Mode::Normal;
+                let old_mode = std::mem::replace(&mut app.current_mode, Mode::Normal);
                 let text = app.selected_window().unwrap().e.text.clone();
-                if let Mode::Command { buffer, .. } = &mut app.current_mode {
+                if let Mode::Command { buffer, .. } = old_mode {
                     app.log.log(format!("Executing {buffer}..."));
 
                     if buffer.is_empty() {
@@ -29,7 +29,6 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 .unwrap();
                         }
                     }
-
                 } else {
                     app.log.log("Error: Not in command mode");
                 }
