@@ -46,9 +46,8 @@ impl Window {
         let current_line_start = self.text.line_to_char(current_line_index);
         let line_offset = self.cursor_char_index - current_line_start;
 
-        self.ident = format!("{current_line_start} {line_offset} {}", layout_rect.width);
-
         let l = layout_rect.width as usize - max_lines as usize - 1 - 3;
+
         if line_offset > l + self.scroll_x {
             self.scroll_x += line_offset - l - self.scroll_x;
         }
