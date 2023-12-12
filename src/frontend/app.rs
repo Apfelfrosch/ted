@@ -32,6 +32,17 @@ impl App {
         self.edit_windows.iter().any(|w| w.modified)
     }
 
+    pub fn close_selected(&mut self) -> Window {
+        let w = self.edit_windows.remove(self.selected_window);
+
+        if self.selected_window >= self.edit_windows.len() {
+            self.selected_window = self.edit_windows.len() - 1;
+        } else if self.selected_window > 0 {
+            self.selected_window -= 1;
+        }
+        w
+    }
+
     pub fn selected_window(&self) -> Option<&'_ Window> {
         if self.edit_windows.is_empty() {
             None

@@ -46,6 +46,19 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 return true;
                             }
                         }
+                        ["c" | "close"] => {
+                            if app.selected_window().is_some() {
+                                let m = app.selected_window().unwrap().modified;
+                                if m {
+                                    app.log.log(format!("There are unsaved changes!"));
+                                } else {
+                                    let closed = app.close_selected();
+                                    app.log.log(format!("Closed {}", closed.resolve_title()));
+                                }
+                            } else {
+                                app.log.log("No window Selected");
+                            }
+                        }
                         ["a" | "attach", param] => {
                             if let Some(sw) = app.selected_window_mut() {
                                 sw.attached_file_path = Some(param.to_string());
