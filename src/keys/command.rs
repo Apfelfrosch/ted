@@ -41,11 +41,18 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         "w" | "write" => {
                             if let Some(sw) = app.selected_window() {
                                 if let Some(path) = &sw.attached_file_path {
-                                    if let Err(e) = do_write(sw, path.as_str()) {
-                                        app.log.log(format!(
-                                            "Error: Could not write {} to {}: {:?}",
-                                            sw.ident, path, e
-                                        ));
+                                    match do_write(sw, path.as_str()) {
+                                        Ok(_) => app.log.log(format!(
+                                            "Successfully wrote {} bytes to {}",
+                                            sw.text.len_bytes(),
+                                            path
+                                        )),
+                                        Err(e) => {
+                                            app.log.log(format!(
+                                                "Error: Could not write {} to {}: {:?}",
+                                                sw.ident, path, e
+                                            ));
+                                        }
                                     }
                                 }
                             } else {
