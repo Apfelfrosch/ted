@@ -11,9 +11,19 @@ use ratatui::{
     widgets::Paragraph,
     Terminal,
 };
-use std::{error::Error, io::stderr, time::Duration};
+use ropey::Rope;
+use std::{
+    env,
+    error::Error,
+    fs::File,
+    io::{stderr, BufReader},
+    time::Duration,
+};
 
-use self::app::{App, Mode};
+use self::{
+    app::{App, Mode},
+    window::Window,
+};
 use crate::log::Log;
 
 pub mod app;
@@ -66,6 +76,46 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         log: Log::new(),
         current_mode: Mode::Normal,
     };
+
+    let mut args = env::args();
+    if let Some(path) = args.nth(1) {
+        let mut x = |rope: Rope| {
+            let window = Window {
+                text: rope,
+                attached_file_path: Some(path.clone()),
+                cursor_char_index: 0,
+                ident: None,
+                scroll_x: 0,
+                scroll_y: 0,
+                modified: false,
+            };
+            app.edit_windows.push(window);
+        };
+
+        match File::open(&path) {
+            Ok(f) => match Rope::from_reader(BufReader::new(f)) {
+                Ok(rope) => {
+                    x(rope);
+                    app.selected_window = app.edit_windows.len() - 1;
+                    app.log.log(format!("[STARTUP] Successfully opened {path}"));
+                }
+                Err(e) => {
+                    x(Rope::new());
+                    app.log.log(format!(
+                        "[STARTUP] Could not open {path} due to {:?} -> created empty window",
+                        e
+                    ));
+                }
+            },
+            Err(e) => {
+                x(Rope::new());
+                app.log.log(format!(
+                    "[STARTUP] Could not open {path} due to {:?} -> created empty window",
+                    e
+                ));
+            }
+        }
+    }
 
     loop {
         terminal.draw(|frame| {
