@@ -15,6 +15,12 @@ pub enum Dialog {
 }
 
 impl Dialog {
+    fn create_block() -> Block<'static> {
+        Block::default()
+            .title_style(Style::new().fg(ratatui::style::Color::Yellow))
+            .borders(Borders::all())
+    }
+
     pub fn render(&self, app: &App, terminal: &mut Frame<'_>, area: Rect) {
         Clear.render(area, terminal.buffer_mut());
         match self {
@@ -34,11 +40,8 @@ impl Dialog {
                 {
                     to_skip = last_window_seen - area.height as usize - 2 + SCROLL_BORDERS + 1;
                 }
+                let block = Dialog::create_block().title(format!("Windows {last_window_seen}"));
 
-                let block = Block::default()
-                    .title(format!("Windows {last_window_seen}"))
-                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
-                    .borders(Borders::all());
                 let lines = app
                     .edit_windows
                     .iter()
@@ -64,22 +67,16 @@ impl Dialog {
                     .take(area.height as usize - 2)
                     .map(Line::from)
                     .collect();
-                let block = Block::default()
-                    .title(format!(
-                        "Logged messages (Current: {}..{} Total: {})",
-                        *slice_start,
-                        *slice_start + lines.len(),
-                        app.log.len()
-                    ))
-                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
-                    .borders(Borders::all());
+                let block = Dialog::create_block().title(format!(
+                    "Logged messages (Current: {}..{} Total: {})",
+                    *slice_start,
+                    *slice_start + lines.len(),
+                    app.log.len()
+                ));
                 terminal.render_widget(Paragraph::new(lines).block(block), area);
             }
             Dialog::Help => {
-                let block = Block::default()
-                    .title("Help")
-                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
-                    .borders(Borders::all());
+                let block = Dialog::create_block().title("Help");
                 terminal.render_widget(
                     Paragraph::new(
                         [
