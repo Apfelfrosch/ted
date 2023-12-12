@@ -13,10 +13,7 @@ use ratatui::{
 };
 use std::{error::Error, io::stderr, time::Duration};
 
-use self::{
-    app::{App, Mode},
-    window::Window,
-};
+use self::app::{App, Mode};
 use crate::log::Log;
 
 pub mod app;
@@ -64,7 +61,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     terminal.clear()?;
 
     let mut app = App {
-        edit_windows: (1..=99).map(|_| Window::default()).collect(),
+        edit_windows: Vec::new(),
         selected_window: 0,
         log: Log::new(),
         current_mode: Mode::Normal,

@@ -50,7 +50,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                             if app.selected_window().is_some() {
                                 let m = app.selected_window().unwrap().modified;
                                 if m {
-                                    app.log.log(format!("There are unsaved changes!"));
+                                    app.log.log("There are unsaved changes!".to_string());
                                 } else {
                                     let closed = app.close_selected();
                                     app.log.log(format!("Closed {}", closed.resolve_title()));
