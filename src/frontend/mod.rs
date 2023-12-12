@@ -84,8 +84,8 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 frame.render_widget(
                     Paragraph::new(vec![
                         Line::from("There are no open windows."),
-                        Line::from("Open a file :o"),
-                        Line::from("Create an empty window :n"),
+                        Line::from("Open a file with :o"),
+                        Line::from("Create an empty window with :n"),
                     ])
                     .alignment(ratatui::layout::Alignment::Center),
                     center_of_edit_area,
