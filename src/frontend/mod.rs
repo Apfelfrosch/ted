@@ -112,13 +112,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 .split(layout[2]);
 
             frame.render_widget(
-                Paragraph::new(Line::from(
-                    Span::from(app.current_mode.display_name()).bg(ratatui::style::Color::Cyan),
-                )),
+                Paragraph::new(Line::from(Span::from(app.current_mode.display_name()))),
                 status_layout[0],
             );
             frame.render_widget(
-                Paragraph::new(Line::from(app.current_mode.display_name()))
+                Paragraph::new(Line::from(Span::from(app.current_mode.display_name())))
                     .alignment(ratatui::layout::Alignment::Right),
                 status_layout[1],
             );
