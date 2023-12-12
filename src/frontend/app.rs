@@ -79,7 +79,7 @@ impl App {
     pub fn previous_window(&mut self) {
         if self.selected_window > 0 {
             self.selected_window -= 1;
-        } else {
+        } else if !self.edit_windows.is_empty() {
             self.selected_window = self.edit_windows.len() - 1;
         }
     }
