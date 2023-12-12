@@ -6,7 +6,8 @@ use crossterm::{
 use ratatui::{
     layout::Rect,
     prelude::{Constraint, CrosstermBackend, Direction, Layout},
-    text::Line,
+    style::Stylize,
+    text::{Line, Span},
     widgets::Paragraph,
     Terminal,
 };
@@ -100,9 +101,21 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 _ => {}
             }
 
+            let status_layout = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(layout[2]);
+
             frame.render_widget(
-                Paragraph::new(Line::from(app.current_mode.display_name())),
-                layout[2],
+                Paragraph::new(Line::from(
+                    Span::from(app.current_mode.display_name()).bg(ratatui::style::Color::Cyan),
+                )),
+                status_layout[0],
+            );
+            frame.render_widget(
+                Paragraph::new(Line::from(app.current_mode.display_name()))
+                    .alignment(ratatui::layout::Alignment::Right),
+                status_layout[1],
             );
         })?;
 
