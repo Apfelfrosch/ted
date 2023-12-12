@@ -1,8 +1,21 @@
-use std::{fs::File, io::BufWriter};
+use std::{
+    fmt::Display,
+    fs::File,
+    io::{self, BufWriter},
+    path::Path,
+};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 
-use crate::frontend::app::{App, Mode};
+use crate::frontend::{
+    app::{App, Mode},
+    window::Window,
+};
+
+fn do_write(window: &Window, path: &str) -> io::Result<()> {
+    window.text.write_to(BufWriter::new(File::create(path)?))?;
+    Ok(())
+}
 
 pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
@@ -18,19 +31,28 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         return false;
                     }
 
-                    if buffer.starts_with('q') && buffer.len() == 1 {
-                        return true;
+                    let args = buffer.split_whitespace().collect::<Vec<&str>>();
+                    if args.is_empty() {
+                        return false;
                     }
 
-                    if buffer.starts_with('w') {
-                        if let Some((_, arg)) = buffer.split_once(' ') {
-                            app.log.log(format!("Writing to {arg}"));
-                            app.selected_window()
-                                .unwrap()
-                                .text
-                                .write_to(BufWriter::new(File::create(arg).unwrap()))
-                                .unwrap();
+                    match args[0] {
+                        "q" | "quit" if args.len() == 1 => return true,
+                        "w" | "write" => {
+                            if let Some(sw) = app.selected_window() {
+                                if let Some(path) = &sw.attached_file_path {
+                                    if let Err(e) = do_write(sw, path.as_str()) {
+                                        app.log.log(format!(
+                                            "Error: Could not write {} to {}: {:?}",
+                                            sw.ident, path, e
+                                        ));
+                                    }
+                                }
+                            } else {
+                                app.log.log("Error: No open window");
+                            }
                         }
+                        _ => {}
                     }
                 } else {
                     app.log.log("Error: Not in command mode");

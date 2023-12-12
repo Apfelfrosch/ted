@@ -15,6 +15,7 @@ pub struct Window {
     pub scroll_x: usize,
     pub scroll_y: usize,
     pub cursor_char_index: usize,
+    pub attached_file_path: Option<String>,
 }
 
 fn visual_length_of_number(i: usize) -> u32 {
@@ -156,6 +157,7 @@ impl Default for Window {
             scroll_x: 0,
             scroll_y: 0,
             cursor_char_index: 0,
+            attached_file_path: Some("a".to_string()),
         }
     }
 }

@@ -1,6 +1,6 @@
 use ratatui::{
     layout::Rect,
-    style::{Style, Stylize},
+    style::{Color, Style, Stylize},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Widget},
     Frame,
@@ -50,11 +50,27 @@ impl Dialog {
                     .enumerate()
                     .map(|(idx, window)| {
                         let is_selcted = app.selected_window == idx + to_skip;
-                        let mut span = Span::from(&window.ident);
+
+                        let mut spans = vec![
+                            Span::from(&window.ident),
+                            Span::from(" "),
+                            Span::from("[Attached: "),
+                            if let Some(p) = &window.attached_file_path {
+                                Span::from(p).fg(Color::Green)
+                            } else {
+                                Span::from("Not Attached").fg(Color::Red)
+                            },
+                            Span::from("]"),
+                        ];
+
                         if is_selcted {
-                            span = span.bg(COMMAND_MODE_BACKGROUND);
+                            spans = spans
+                                .into_iter()
+                                .map(|s| s.bg(COMMAND_MODE_BACKGROUND))
+                                .collect();
                         }
-                        Line::from(span)
+
+                        Line::from(spans)
                     })
                     .collect::<Vec<Line>>();
                 terminal.render_widget(Paragraph::new(lines).block(block), area);
