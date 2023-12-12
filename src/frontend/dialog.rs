@@ -1,12 +1,12 @@
 use ratatui::{
     layout::Rect,
-    style::Style,
-    text::Line,
+    style::{Style, Stylize},
+    text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Widget},
     Frame,
 };
 
-use super::app::App;
+use super::{app::App, COMMAND_MODE_BACKGROUND};
 
 pub enum Dialog {
     LogDisplay { slice_start: usize, selected: usize },
@@ -23,17 +23,20 @@ impl Dialog {
                     .title("Windows")
                     .title_style(Style::new().fg(ratatui::style::Color::Yellow))
                     .borders(Borders::all());
-                let mut lines = app
+                let lines = app
                     .edit_windows
                     .iter()
-                    .map(|w| w.ident.clone())
-                    .collect::<Vec<String>>();
-                lines.sort();
-                terminal.render_widget(
-                    Paragraph::new(lines.into_iter().map(Line::from).collect::<Vec<Line>>())
-                        .block(block),
-                    area,
-                );
+                    .enumerate()
+                    .map(|(idx, window)| {
+                        let is_selcted = app.selected_window == idx;
+                        let mut span = Span::from(&window.ident);
+                        if is_selcted {
+                            span = span.bg(COMMAND_MODE_BACKGROUND);
+                        }
+                        Line::from(span)
+                    })
+                    .collect::<Vec<Line>>();
+                terminal.render_widget(Paragraph::new(lines).block(block), area);
             }
             Dialog::LogDisplay { slice_start, .. } => {
                 let lines: Vec<Line> = app
