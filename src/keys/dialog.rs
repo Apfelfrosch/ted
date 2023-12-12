@@ -11,12 +11,20 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
             #[allow(clippy::single_match)]
             match event.code {
                 KeyCode::Esc => app.current_mode = Mode::Normal,
-                KeyCode::Left | KeyCode::Char('H') => {
+                KeyCode::Left
+                | KeyCode::Char('h')
+                | KeyCode::Char('H')
+                | KeyCode::Char('k')
+                | KeyCode::Up => {
                     if let Dialog::Windows = which_one {
                         app.previous_window();
                     }
                 }
-                KeyCode::Right | KeyCode::Char('L') => {
+                KeyCode::Right
+                | KeyCode::Char('l')
+                | KeyCode::Char('L')
+                | KeyCode::Char('j')
+                | KeyCode::Down => {
                     if let Dialog::Windows = which_one {
                         app.next_window();
                     }
