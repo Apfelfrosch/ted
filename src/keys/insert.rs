@@ -25,6 +25,7 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
             KeyCode::Char(c) => {
                 if let Some(sw) = app.selected_window_mut() {
                     sw.text.insert_char(sw.cursor_char_index, c);
+                    sw.modified = true;
                     sw.cursor_char_index += 1;
                 }
             }

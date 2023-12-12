@@ -28,6 +28,10 @@ pub struct App {
 }
 
 impl App {
+    pub fn has_modified_windows(&self) -> bool {
+        self.edit_windows.iter().any(|w| w.modified)
+    }
+
     pub fn selected_window(&self) -> Option<&'_ Window> {
         if self.edit_windows.is_empty() {
             None

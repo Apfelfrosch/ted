@@ -60,6 +60,13 @@ impl Dialog {
                             } else {
                                 Span::from("Not Attached").fg(Color::Red)
                             },
+                            Span::from(" "),
+                            Span::from("Modified: "),
+                            if window.modified {
+                                Span::from("true").fg(Color::Red)
+                            } else {
+                                Span::from("false").fg(Color::Green)
+                            },
                             Span::from("]"),
                         ];
 

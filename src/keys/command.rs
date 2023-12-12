@@ -36,7 +36,16 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                     }
 
                     match args.as_slice() {
-                        ["q" | "quit"] => return true,
+                        ["q!" | "quit!"] => return true,
+                        ["q" | "quit"] => {
+                            if app.has_modified_windows() {
+                                app.log.log(
+                                    "There are unsaved changes! Use q! or quit! to force quit.",
+                                );
+                            } else {
+                                return true;
+                            }
+                        }
                         ["a" | "attach", param] => {
                             if let Some(sw) = app.selected_window_mut() {
                                 sw.attached_file_path = Some(param.to_string());
@@ -47,27 +56,35 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                             }
                         }
                         ["w" | "write"] => {
-                            if let Some(sw) = app.selected_window() {
+                            let to_log: String;
+                            if let Some(sw) = app.selected_window_mut() {
                                 if let Some(path) = &sw.attached_file_path {
                                     match do_write(sw, path.as_str()) {
-                                        Ok(_) => app.log.log(format!(
-                                            "Successfully wrote {} bytes to {}",
-                                            sw.text.len_bytes(),
-                                            path
-                                        )),
+                                        Ok(_) => {
+                                            sw.modified = false;
+                                            to_log = format!(
+                                                "Successfully wrote {} bytes to {}",
+                                                sw.text.len_bytes(),
+                                                path
+                                            );
+                                        }
                                         Err(e) => {
-                                            app.log.log(format!(
+                                            to_log = format!(
                                                 "Error: Could not write {} to {}: {:?}",
                                                 sw.resolve_title(),
                                                 path,
                                                 e
-                                            ));
+                                            );
                                         }
                                     }
+                                } else {
+                                    to_log = "This window is not attached".to_string();
                                 }
                             } else {
-                                app.log.log("Error: No open window");
+                                to_log = "Error: No open window".to_string();
                             }
+
+                            app.log.log(to_log);
                         }
                         ["o" | "open", path] => match File::open(path) {
                             Ok(f) => match Rope::from_reader(BufReader::new(f)) {
@@ -79,6 +96,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                         ident: None,
                                         scroll_x: 0,
                                         scroll_y: 0,
+                                        modified: false,
                                     };
                                     app.edit_windows.push(window);
                                     app.selected_window = app.edit_windows.len() - 1;

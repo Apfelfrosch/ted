@@ -16,6 +16,7 @@ pub struct Window {
     pub scroll_y: usize,
     pub cursor_char_index: usize,
     pub attached_file_path: Option<String>,
+    pub modified: bool,
 }
 
 fn visual_length_of_number(i: usize) -> u32 {
@@ -107,7 +108,11 @@ impl Window {
         terminal.render_widget(
             Paragraph::new(v).block(
                 Block::default()
-                    .title(Line::from(self.resolve_title()))
+                    .title(Line::from(format!(
+                        "{}{}",
+                        self.resolve_title(),
+                        if self.modified { "*" } else { "" }
+                    )))
                     .borders(Borders::all()),
             ),
             layout_rect,
@@ -166,6 +171,7 @@ impl Default for Window {
             scroll_y: 0,
             cursor_char_index: 0,
             attached_file_path: Some("a".to_string()),
+            modified: false,
         }
     }
 }
