@@ -16,7 +16,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                 | KeyCode::Char('H')
                 | KeyCode::Char('k')
                 | KeyCode::Up => {
-                    if let Dialog::Windows = which_one {
+                    if let Dialog::Windows { .. } = which_one {
                         app.previous_window();
                     }
                 }
@@ -25,7 +25,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                 | KeyCode::Char('L')
                 | KeyCode::Char('j')
                 | KeyCode::Down => {
-                    if let Dialog::Windows = which_one {
+                    if let Dialog::Windows { .. } = which_one {
                         app.next_window();
                     }
                 }

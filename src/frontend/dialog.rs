@@ -19,16 +19,28 @@ impl Dialog {
         Clear.render(area, terminal.buffer_mut());
         match self {
             Dialog::Windows => {
+                const SCROLL_BORDERS: usize = 3;
+
                 let block = Block::default()
                     .title("Windows")
                     .title_style(Style::new().fg(ratatui::style::Color::Yellow))
                     .borders(Borders::all());
+
+                let to_skip = if app.selected_window < SCROLL_BORDERS {
+                    0
+                } else {
+                    app.selected_window - SCROLL_BORDERS
+                };
+                let to_take = area.height as usize;
+
                 let lines = app
                     .edit_windows
                     .iter()
+                    .skip(to_skip)
+                    .take(to_take)
                     .enumerate()
                     .map(|(idx, window)| {
-                        let is_selcted = app.selected_window == idx;
+                        let is_selcted = app.selected_window == idx + to_skip;
                         let mut span = Span::from(&window.ident);
                         if is_selcted {
                             span = span.bg(COMMAND_MODE_BACKGROUND);

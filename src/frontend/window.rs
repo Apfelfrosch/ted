@@ -141,10 +141,17 @@ impl Window {
     }
 }
 
+static mut x: usize = 1;
+
 impl Default for Window {
     fn default() -> Self {
+        let y = unsafe {
+            let t = x;
+            x += 1;
+            t
+        };
         Window {
-            ident: "Window".to_string(),
+            ident: format!("Window #{y}").to_string(),
             text: Rope::from_reader(BufReader::new(File::open("test_text.txt").unwrap())).unwrap(),
             scroll_x: 0,
             scroll_y: 0,
