@@ -10,7 +10,7 @@ use ratatui::{
 use ropey::Rope;
 
 pub struct Window {
-    pub ident: String,
+    pub ident: Option<String>,
     pub text: Rope,
     pub scroll_x: usize,
     pub scroll_y: usize,
@@ -27,6 +27,14 @@ fn visual_length_of_number(i: usize) -> u32 {
 }
 
 impl Window {
+    pub fn resolve_title<'a>(&'a self) -> &'a str {
+        self.ident
+            .as_ref()
+            .or(self.attached_file_path.as_ref())
+            .map(|s| s.as_str())
+            .unwrap_or("Untitled")
+    }
+
     pub fn render(&mut self, terminal: &mut Frame<'_>, layout_rect: Rect, _is_selected: bool) {
         if layout_rect.height < 2 {
             return;
@@ -99,7 +107,7 @@ impl Window {
         terminal.render_widget(
             Paragraph::new(v).block(
                 Block::default()
-                    .title(Line::from(self.ident.as_str()))
+                    .title(Line::from(self.resolve_title()))
                     .borders(Borders::all()),
             ),
             layout_rect,
@@ -152,7 +160,7 @@ impl Default for Window {
             t
         };
         Window {
-            ident: format!("Window #{y}").to_string(),
+            ident: Some(format!("Window #{y}").to_string()),
             text: Rope::from_reader(BufReader::new(File::open("test_text.txt").unwrap())).unwrap(),
             scroll_x: 0,
             scroll_y: 0,

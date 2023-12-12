@@ -52,7 +52,7 @@ impl Dialog {
                         let is_selcted = app.selected_window == idx + to_skip;
 
                         let mut spans = vec![
-                            Span::from(&window.ident),
+                            Span::from(window.resolve_title()),
                             Span::from(" "),
                             Span::from("[Attached: "),
                             if let Some(p) = &window.attached_file_path {

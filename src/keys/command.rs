@@ -57,7 +57,9 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                         Err(e) => {
                                             app.log.log(format!(
                                                 "Error: Could not write {} to {}: {:?}",
-                                                sw.ident, path, e
+                                                sw.resolve_title(),
+                                                path,
+                                                e
                                             ));
                                         }
                                     }
