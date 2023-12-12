@@ -36,9 +36,16 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         return false;
                     }
 
-                    match args[0] {
-                        "q" | "quit" if args.len() == 1 => return true,
-                        "w" | "write" => {
+                    match args.as_slice() {
+                        ["q" | "quit"] => return true,
+                        ["a", param] | ["attach", param] => {
+                            if let Some(sw) = app.selected_window_mut() {
+                                sw.attached_file_path = Some(param.to_string());
+                                app.log
+                                    .log(format!("Attached the current window to {param}"));
+                            }
+                        }
+                        ["w"] | ["write"] => {
                             if let Some(sw) = app.selected_window() {
                                 if let Some(path) = &sw.attached_file_path {
                                     match do_write(sw, path.as_str()) {
