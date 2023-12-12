@@ -7,14 +7,14 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
         match event.code {
             KeyCode::Enter => {
                 if let Some(sw) = app.selected_window_mut() {
-                    sw.e.text.insert_char(sw.cursor_char_index, '\n');
+                    sw.text.insert_char(sw.cursor_char_index, '\n');
                     sw.cursor_char_index += 1;
                 }
             }
             KeyCode::Backspace => {
                 if let Some(sw) = app.selected_window_mut() {
                     if sw.cursor_char_index > 0 {
-                        sw.e.text
+                        sw.text
                             .remove((sw.cursor_char_index - 1)..sw.cursor_char_index);
                         sw.cursor_char_index -= 1;
                     }
@@ -24,7 +24,7 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
             KeyCode::Char(c) => match c {
                 any => {
                     if let Some(sw) = app.selected_window_mut() {
-                        sw.e.text.insert_char(sw.cursor_char_index, any);
+                        sw.text.insert_char(sw.cursor_char_index, any);
                         sw.cursor_char_index += 1;
                     }
                 }

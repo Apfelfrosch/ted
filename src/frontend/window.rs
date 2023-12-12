@@ -9,11 +9,9 @@ use ratatui::{
 };
 use ropey::Rope;
 
-use crate::editor::Editor;
-
 pub struct Window {
     pub ident: String,
-    pub e: Editor,
+    pub text: Rope,
     pub scroll_x: usize,
     pub scroll_y: usize,
     pub cursor_char_index: usize,
@@ -32,8 +30,8 @@ impl Window {
         if layout_rect.height < 2 {
             return;
         }
-        let max_lines = visual_length_of_number(self.e.text.len_lines());
-        let current_line_index = self.e.text.char_to_line(self.cursor_char_index);
+        let max_lines = visual_length_of_number(self.text.len_lines());
+        let current_line_index = self.text.char_to_line(self.cursor_char_index);
         let max_line_seen = self.scroll_y + layout_rect.height as usize - 3;
 
         if current_line_index < self.scroll_y {
@@ -44,7 +42,7 @@ impl Window {
             self.scroll_y += current_line_index - max_line_seen;
         }
 
-        let current_line_start = self.e.text.line_to_char(current_line_index);
+        let current_line_start = self.text.line_to_char(current_line_index);
         let line_offset = self.cursor_char_index - current_line_start;
 
         self.ident = format!("{current_line_start} {line_offset} {}", layout_rect.width);
@@ -59,7 +57,6 @@ impl Window {
         }
 
         let v = self
-            .e
             .text
             .lines_at(self.scroll_y)
             .enumerate()
@@ -113,7 +110,7 @@ impl Window {
     }
 
     pub fn render_cursor(&self, terminal: &mut Frame<'_>, layout_rect: Rect) {
-        let current_line = self.e.text.char_to_line(self.cursor_char_index);
+        let current_line = self.text.char_to_line(self.cursor_char_index);
         if current_line < self.scroll_y {
             return;
         }
@@ -122,18 +119,18 @@ impl Window {
             return;
         }
 
-        let current_line_start = self.e.text.line_to_char(current_line);
+        let current_line_start = self.text.line_to_char(current_line);
 
         if self.cursor_char_index - current_line_start < self.scroll_x {
             return;
         }
 
         let cursor_y = current_line - self.scroll_y + 1;
-        let mut cursor_x = (1 + visual_length_of_number(self.e.text.len_lines()) + 1) as usize;
+        let mut cursor_x = (1 + visual_length_of_number(self.text.len_lines()) + 1) as usize;
         let mut to_remove = 0;
         for i in 0..(self.cursor_char_index - current_line_start) {
             let width =
-                unicode_width::UnicodeWidthChar::width(self.e.text.char(current_line_start + i))
+                unicode_width::UnicodeWidthChar::width(self.text.char(current_line_start + i))
                     .unwrap_or(1);
             if i < self.scroll_x {
                 to_remove += width;
@@ -152,10 +149,7 @@ impl Default for Window {
     fn default() -> Self {
         Window {
             ident: "Window".to_string(),
-            e: Editor {
-                text: Rope::from_reader(BufReader::new(File::open("test_text.txt").unwrap()))
-                    .unwrap(),
-            },
+            text: Rope::from_reader(BufReader::new(File::open("test_text.txt").unwrap())).unwrap(),
             scroll_x: 0,
             scroll_y: 0,
             cursor_char_index: 0,

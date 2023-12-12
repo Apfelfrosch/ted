@@ -19,7 +19,7 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                 'i' => app.current_mode = Mode::Insert,
                 'l' => {
                     if let Some(sw) = app.selected_window_mut() {
-                        if sw.cursor_char_index + 1 >= sw.e.text.len_chars() {
+                        if sw.cursor_char_index + 1 >= sw.text.len_chars() {
                             return false;
                         }
                         sw.cursor_char_index += 1;
@@ -35,7 +35,7 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                 }
                 'j' => {
                     if let Some(sw) = app.selected_window_mut() {
-                        let text = &mut sw.e.text;
+                        let text = &mut sw.text;
                         let current_line_index = text.char_to_line(sw.cursor_char_index);
                         if current_line_index + 1 >= text.len_lines() {
                             return false;
@@ -46,7 +46,7 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                 }
                 'k' => {
                     if let Some(sw) = app.selected_window_mut() {
-                        let text = &mut sw.e.text;
+                        let text = &mut sw.text;
                         let current_line_index = text.char_to_line(sw.cursor_char_index);
                         if current_line_index == 0 {
                             return false;

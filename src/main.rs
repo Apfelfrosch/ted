@@ -1,6 +1,5 @@
 use std::error::Error;
 
-mod editor;
 mod frontend;
 mod keys;
 mod log;

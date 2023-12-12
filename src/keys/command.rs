@@ -26,7 +26,6 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                             app.log.log(format!("Writing to {arg}"));
                             app.selected_window()
                                 .unwrap()
-                                .e
                                 .text
                                 .write_to(BufWriter::new(File::create(arg).unwrap()))
                                 .unwrap();
