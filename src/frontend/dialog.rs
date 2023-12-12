@@ -9,7 +9,7 @@ use ratatui::{
 use super::{app::App, COMMAND_MODE_BACKGROUND};
 
 pub enum Dialog {
-    LogDisplay { slice_start: usize, selected: usize },
+    Logs,
     Help,
     Windows,
 }
@@ -82,20 +82,14 @@ impl Dialog {
                     .collect::<Vec<Line>>();
                 terminal.render_widget(Paragraph::new(lines).block(block), area);
             }
-            Dialog::LogDisplay { slice_start, .. } => {
+            Dialog::Logs => {
                 let lines: Vec<Line> = app
                     .log
                     .take_lines()
-                    .skip(*slice_start)
                     .take(area.height as usize - 2)
                     .map(Line::from)
                     .collect();
-                let block = Dialog::create_block().title(format!(
-                    "Logged messages (Current: {}..{} Total: {})",
-                    *slice_start,
-                    *slice_start + lines.len(),
-                    app.log.len()
-                ));
+                let block = Dialog::create_block().title("Log");
                 terminal.render_widget(Paragraph::new(lines).block(block), area);
             }
             Dialog::Help => {

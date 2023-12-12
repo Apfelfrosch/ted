@@ -8,6 +8,7 @@ use ropey::Rope;
 
 use crate::frontend::{
     app::{App, Mode},
+    dialog::Dialog,
     window::Window,
 };
 
@@ -44,6 +45,11 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 );
                             } else {
                                 return true;
+                            }
+                        }
+                        ["log" | "logs"] => {
+                            app.current_mode = Mode::Dialog {
+                                which_one: Dialog::Logs,
                             }
                         }
                         ["c" | "close"] => {
