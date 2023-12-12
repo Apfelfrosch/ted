@@ -1,11 +1,12 @@
 use std::{
     fmt::Display,
     fs::File,
-    io::{self, BufWriter},
+    io::{self, BufReader, BufWriter},
     path::Path,
 };
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
+use ropey::Rope;
 
 use crate::frontend::{
     app::{App, Mode},
@@ -70,6 +71,25 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 app.log.log("Error: No open window");
                             }
                         }
+                        ["o" | "open", path] => match File::open(path) {
+                            Ok(f) => match Rope::from_reader(BufReader::new(f)) {
+                                Ok(rope) => {
+                                    let window = Window {
+                                        text: rope,
+                                        attached_file_path: Some(path.to_string()),
+                                        cursor_char_index: 0,
+                                        ident: None,
+                                        scroll_x: 0,
+                                        scroll_y: 0,
+                                    };
+                                    app.edit_windows.push(window);
+                                    app.selected_window = app.edit_windows.len() - 1;
+                                    app.log.log(format!("Successfully opened {path}"));
+                                }
+                                Err(e) => app.log.log(format!("Could not open {path}: {:?}", e)),
+                            },
+                            Err(e) => app.log.log(format!("Could not open {path}: {:?}", e)),
+                        },
                         ["settitle", new_title] => {
                             if let Some(sw) = app.selected_window_mut() {
                                 sw.ident = Some(new_title.to_string());
