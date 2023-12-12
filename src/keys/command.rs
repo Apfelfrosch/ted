@@ -6,6 +6,7 @@ use crate::frontend::app::{App, Mode};
 
 pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
+        #[allow(clippy::single_match)]
         match event.code {
             KeyCode::Esc => app.current_mode = Mode::Normal,
             KeyCode::Enter => {
@@ -17,12 +18,12 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         return false;
                     }
 
-                    if buffer.starts_with("q") {
+                    if buffer.starts_with('q') && buffer.len() == 1 {
                         return true;
                     }
 
-                    if buffer.starts_with("w") {
-                        if let Some((_, arg)) = buffer.split_once(" ") {
+                    if buffer.starts_with('w') {
+                        if let Some((_, arg)) = buffer.split_once(' ') {
                             app.log.log(format!("Writing to {arg}"));
                             app.selected_window()
                                 .unwrap()

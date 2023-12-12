@@ -4,6 +4,7 @@ use crate::frontend::app::{App, Mode};
 
 pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
+        #[allow(clippy::single_match)]
         match event.code {
             KeyCode::Enter => {
                 if let Some(sw) = app.selected_window_mut() {
@@ -21,14 +22,12 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
                 }
             }
             KeyCode::Esc => app.current_mode = Mode::Normal,
-            KeyCode::Char(c) => match c {
-                any => {
-                    if let Some(sw) = app.selected_window_mut() {
-                        sw.text.insert_char(sw.cursor_char_index, any);
-                        sw.cursor_char_index += 1;
-                    }
+            KeyCode::Char(c) => {
+                if let Some(sw) = app.selected_window_mut() {
+                    sw.text.insert_char(sw.cursor_char_index, c);
+                    sw.cursor_char_index += 1;
                 }
-            },
+            }
             _ => {}
         }
     }

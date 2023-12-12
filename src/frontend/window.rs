@@ -35,7 +35,8 @@ impl Window {
         let max_line_seen = self.scroll_y + layout_rect.height as usize - 3;
 
         if current_line_index < self.scroll_y {
-            self.scroll_y -= self.scroll_y - current_line_index;
+            let offset = self.scroll_y - current_line_index;
+            self.scroll_y -= offset;
         }
 
         if current_line_index > max_line_seen {
@@ -53,7 +54,8 @@ impl Window {
         }
 
         if line_offset < self.scroll_x {
-            self.scroll_x -= self.scroll_x - line_offset;
+            let offset = self.scroll_x - line_offset;
+            self.scroll_x -= offset;
         }
 
         let v = self
@@ -66,7 +68,7 @@ impl Window {
                 let mut line_buf = String::with_capacity(max_lines as usize + 1);
 
                 let idx = idx + 1;
-                for _ in 0..(max_lines - visual_length_of_number(idx) as u32) {
+                for _ in 0..(max_lines - visual_length_of_number(idx)) {
                     line_buf.push('0');
                 }
 

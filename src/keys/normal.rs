@@ -7,6 +7,7 @@ use crate::frontend::{
 
 pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
+        #[allow(clippy::single_match)]
         match event.code {
             KeyCode::Char(c) => match c {
                 ':' => {

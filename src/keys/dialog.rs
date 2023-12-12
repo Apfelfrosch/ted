@@ -4,6 +4,7 @@ use crate::frontend::app::{App, Mode};
 
 pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
+        #[allow(clippy::single_match)]
         match event.code {
             KeyCode::Esc => app.current_mode = Mode::Normal,
             _ => {}
