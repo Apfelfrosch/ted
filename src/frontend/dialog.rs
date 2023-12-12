@@ -21,23 +21,29 @@ impl Dialog {
             Dialog::Windows => {
                 const SCROLL_BORDERS: usize = 3;
 
-                let block = Block::default()
-                    .title("Windows")
-                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
-                    .borders(Borders::all());
-
-                let to_skip = if app.selected_window < SCROLL_BORDERS {
+                let mut to_skip = if app.selected_window < SCROLL_BORDERS {
                     0
                 } else {
                     app.selected_window - SCROLL_BORDERS
                 };
-                let to_take = area.height as usize;
 
+                let last_window_seen =
+                    (to_skip + area.height as usize - 2).min(app.edit_windows.len());
+                if last_window_seen > area.height as usize + 2
+                    && last_window_seen == app.edit_windows.len()
+                {
+                    to_skip = last_window_seen - area.height as usize - 2 + SCROLL_BORDERS + 1;
+                }
+
+                let block = Block::default()
+                    .title(format!("Windows {last_window_seen}"))
+                    .title_style(Style::new().fg(ratatui::style::Color::Yellow))
+                    .borders(Borders::all());
                 let lines = app
                     .edit_windows
                     .iter()
                     .skip(to_skip)
-                    .take(to_take)
+                    .take(area.height as usize)
                     .enumerate()
                     .map(|(idx, window)| {
                         let is_selcted = app.selected_window == idx + to_skip;
