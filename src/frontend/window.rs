@@ -26,7 +26,7 @@ fn visual_length_of_number(i: usize) -> u32 {
 }
 
 impl Window {
-    pub fn render(&mut self, terminal: &mut Frame<'_>, layout_rect: Rect, is_selected: bool) {
+    pub fn render(&mut self, terminal: &mut Frame<'_>, layout_rect: Rect, _is_selected: bool) {
         if layout_rect.height < 2 {
             return;
         }
@@ -100,12 +100,7 @@ impl Window {
             Paragraph::new(v).block(
                 Block::default()
                     .title(Line::from(self.ident.as_str()))
-                    .borders(Borders::all())
-                    .border_style(Style::default().fg(if is_selected {
-                        Color::Red
-                    } else {
-                        Color::White
-                    })),
+                    .borders(Borders::all()),
             ),
             layout_rect,
         );
