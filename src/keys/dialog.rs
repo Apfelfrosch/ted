@@ -10,7 +10,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
         if let Mode::Dialog { which_one } = &app.current_mode {
             #[allow(clippy::single_match)]
             match event.code {
-                KeyCode::Esc => app.current_mode = Mode::Normal,
+                KeyCode::Esc | KeyCode::Enter => app.current_mode = Mode::Normal,
                 KeyCode::Left
                 | KeyCode::Char('h')
                 | KeyCode::Char('H')
