@@ -4,7 +4,7 @@ use crossterm::{
 };
 use unicode_width::UnicodeWidthChar;
 
-use super::{
+use crate::frontend::{
     app::{App, Mode},
     dialog::Dialog,
 };

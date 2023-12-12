@@ -18,10 +18,10 @@ use std::{
 
 use self::app::{App, Mode};
 use crate::log::Log;
-mod app;
-mod dialog;
-mod keys;
-mod window;
+
+pub mod app;
+pub mod dialog;
+pub mod window;
 
 fn initialize_panic_hook() {
     let original_hook = std::panic::take_hook();
@@ -128,7 +128,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
         if event::poll(Duration::from_millis(100))? {
             if let event::Event::Key(key) = event::read()? {
-                if keys::process_keys(key, &mut app) {
+                if crate::keys::process_keys(key, &mut app) {
                     break;
                 }
             }
