@@ -1,13 +1,30 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 
-use crate::frontend::app::{App, Mode};
+use crate::frontend::{
+    app::{App, Mode},
+    dialog::Dialog,
+};
 
 pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
     if let KeyEventKind::Press = event.kind {
-        #[allow(clippy::single_match)]
-        match event.code {
-            KeyCode::Esc => app.current_mode = Mode::Normal,
-            _ => {}
+        if let Mode::Dialog { which_one } = &app.current_mode {
+            #[allow(clippy::single_match)]
+            match event.code {
+                KeyCode::Esc => app.current_mode = Mode::Normal,
+                KeyCode::Left | KeyCode::Char('H') => {
+                    if let Dialog::Windows = which_one {
+                        app.previous_window();
+                    }
+                }
+                KeyCode::Right | KeyCode::Char('L') => {
+                    if let Dialog::Windows = which_one {
+                        app.next_window();
+                    }
+                }
+                _ => {}
+            }
+        } else {
+            app.log.log("Error: Not in dialog mode");
         }
     }
     false
