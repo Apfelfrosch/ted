@@ -92,6 +92,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 }
             }
 
+            let mut is_command_mode = false;
             match &app.current_mode {
                 Mode::Dialog {
                     which_one: current_dialog,
@@ -99,6 +100,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                     current_dialog.render(&app, frame, centered_rect(frame.size(), 50, 50));
                 }
                 Mode::Command { buffer, char_idx } => {
+                    is_command_mode = true;
                     frame.set_cursor((char_idx + 1) as u16, layout[1].y);
                     frame.render_widget(
                         Paragraph::new(Line::from(format!(":{buffer}")))
@@ -107,6 +109,12 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                     );
                 }
                 _ => {}
+            }
+
+            if !is_command_mode {
+                if let Some(first_log_line) = app.log.take_lines().next() {
+                    frame.render_widget(Paragraph::new(Line::from(first_log_line)), layout[1]);
+                }
             }
 
             let status_layout = Layout::default()
