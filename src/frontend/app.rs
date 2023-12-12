@@ -52,5 +52,8 @@ impl App {
 
     pub fn next_window(&mut self) {
         self.selected_window += 1;
+        if self.selected_window >= self.edit_windows.len() {
+            self.selected_window = 0;
+        }
     }
 }
