@@ -27,7 +27,7 @@ fn visual_length_of_number(i: usize) -> u32 {
 }
 
 impl Window {
-    pub fn resolve_title<'a>(&'a self) -> &'a str {
+    pub fn resolve_title(&self) -> &str {
         self.ident
             .as_ref()
             .or(self.attached_file_path.as_ref())

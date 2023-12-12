@@ -1,8 +1,6 @@
 use std::{
-    fmt::Display,
     fs::File,
     io::{self, BufReader, BufWriter},
-    path::Path,
 };
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
