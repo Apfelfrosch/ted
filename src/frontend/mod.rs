@@ -78,7 +78,19 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 ])
                 .split(frame.size());
 
-            if !app.edit_windows.is_empty() {
+            if app.edit_windows.is_empty() {
+                let edit_area = layout[0];
+                let center_of_edit_area = centered_rect(edit_area, 50, 50);
+                frame.render_widget(
+                    Paragraph::new(vec![
+                        Line::from("There are no open windows."),
+                        Line::from("Open a file :o"),
+                        Line::from("Create an empty window :n"),
+                    ])
+                    .alignment(ratatui::layout::Alignment::Center),
+                    center_of_edit_area,
+                );
+            } else {
                 if app.selected_window >= app.edit_windows.len() {
                     app.selected_window = app.edit_windows.len() - 1;
                 }

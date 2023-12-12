@@ -1,3 +1,5 @@
+use ropey::Rope;
+
 use crate::log::Log;
 
 use super::{dialog::Dialog, window::Window};
@@ -30,6 +32,20 @@ pub struct App {
 impl App {
     pub fn has_modified_windows(&self) -> bool {
         self.edit_windows.iter().any(|w| w.modified)
+    }
+
+    pub fn create_empty_window(&mut self) -> usize {
+        let window = Window {
+            attached_file_path: None,
+            cursor_char_index: 0,
+            ident: None,
+            modified: false,
+            scroll_x: 0,
+            scroll_y: 0,
+            text: Rope::new(),
+        };
+        self.edit_windows.push(window);
+        self.edit_windows.len() - 1
     }
 
     pub fn close_selected(&mut self) -> Window {
