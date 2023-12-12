@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufWriter, mem::replace};
+use std::{fs::File, io::BufWriter};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 

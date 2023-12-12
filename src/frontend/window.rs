@@ -1,10 +1,5 @@
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-};
+use std::{fs::File, io::BufReader};
 
-use chrono::format;
-use crossterm::style::Stylize;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},

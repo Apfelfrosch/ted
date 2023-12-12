@@ -35,10 +35,7 @@ impl Dialog {
                     area,
                 );
             }
-            Dialog::LogDisplay {
-                slice_start,
-                selected,
-            } => {
+            Dialog::LogDisplay { slice_start, .. } => {
                 let lines: Vec<Line> = app
                     .log
                     .take_lines()

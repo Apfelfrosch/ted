@@ -1,13 +1,6 @@
-use crossterm::{
-    cursor,
-    event::{KeyCode, KeyEvent, KeyEventKind},
-};
-use unicode_width::UnicodeWidthChar;
+use crossterm::event::KeyEvent;
 
-use crate::frontend::{
-    app::{App, Mode},
-    dialog::Dialog,
-};
+use crate::frontend::app::{App, Mode};
 
 mod command;
 mod dialog;

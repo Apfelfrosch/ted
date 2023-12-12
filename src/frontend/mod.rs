@@ -10,11 +10,7 @@ use ratatui::{
     widgets::Paragraph,
     Terminal,
 };
-use std::{
-    error::Error,
-    io::stderr,
-    time::{Duration, Instant},
-};
+use std::{error::Error, io::stderr, time::Duration};
 
 use self::app::{App, Mode};
 use crate::log::Log;
@@ -70,7 +66,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 
     loop {
         let len_instances = app.edit_windows.len();
-        let now = Instant::now();
         terminal.draw(|frame| {
             let layout = Layout::default()
                 .direction(Direction::Vertical)
@@ -121,10 +116,6 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 layout[2],
             );
         })?;
-        let mut elapsed = now.elapsed().as_micros();
-        if elapsed == 0 {
-            elapsed = 1;
-        }
 
         if event::poll(Duration::from_millis(100))? {
             if let event::Event::Key(key) = event::read()? {
