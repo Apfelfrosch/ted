@@ -6,7 +6,7 @@ use crossterm::{
 use ratatui::{
     layout::Rect,
     prelude::{Constraint, CrosstermBackend, Direction, Layout},
-    style::Stylize,
+    style::{Color, Stylize},
     text::{Line, Span},
     widgets::Paragraph,
     Terminal,
@@ -19,6 +19,8 @@ use crate::log::Log;
 pub mod app;
 pub mod dialog;
 pub mod window;
+
+const COMMAND_MODE_BACKGROUND: Color = Color::Rgb(77, 77, 77);
 
 fn initialize_panic_hook() {
     let original_hook = std::panic::take_hook();
@@ -95,8 +97,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 }
                 Mode::Command { buffer, char_idx } => {
                     frame.set_cursor((char_idx + 1) as u16, layout[1].y);
-                    frame
-                        .render_widget(Paragraph::new(Line::from(format!(":{buffer}"))), layout[1]);
+                    frame.render_widget(
+                        Paragraph::new(Line::from(format!(":{buffer}")))
+                            .bg(COMMAND_MODE_BACKGROUND),
+                        layout[1],
+                    );
                 }
                 _ => {}
             }
