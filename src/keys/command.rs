@@ -39,7 +39,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
 
                     match args.as_slice() {
                         ["q" | "quit"] => return true,
-                        ["a", param] | ["attach", param] => {
+                        ["a" | "attach", param] => {
                             if let Some(sw) = app.selected_window_mut() {
                                 sw.attached_file_path = Some(param.to_string());
                                 app.log
@@ -48,7 +48,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 app.log.log("No window selected");
                             }
                         }
-                        ["w"] | ["write"] => {
+                        ["w" | "write"] => {
                             if let Some(sw) = app.selected_window() {
                                 if let Some(path) = &sw.attached_file_path {
                                     match do_write(sw, path.as_str()) {
