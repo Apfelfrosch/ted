@@ -43,4 +43,14 @@ impl App {
             Some(&mut self.edit_windows[self.selected_window])
         }
     }
+
+    pub fn previous_window(&mut self) {
+        if self.selected_window > 0 {
+            self.selected_window -= 1;
+        }
+    }
+
+    pub fn next_window(&mut self) {
+        self.selected_window += 1;
+    }
 }

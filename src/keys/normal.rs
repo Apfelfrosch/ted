@@ -56,19 +56,8 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         sw.cursor_char_index = start_of_prev_line;
                     }
                 }
-                'L' => {
-                    app.current_mode = Mode::Dialog {
-                        which_one: Dialog::LogDisplay {
-                            slice_start: 0,
-                            selected: 0,
-                        },
-                    }
-                }
-                'H' => {
-                    app.current_mode = Mode::Dialog {
-                        which_one: Dialog::Help,
-                    }
-                }
+                'L' => app.next_window(),
+                'H' => app.previous_window(),
                 'W' => {
                     app.current_mode = Mode::Dialog {
                         which_one: Dialog::Windows,
