@@ -43,6 +43,8 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 sw.attached_file_path = Some(param.to_string());
                                 app.log
                                     .log(format!("Attached the current window to {param}"));
+                            } else {
+                                app.log.log("No window selected");
                             }
                         }
                         ["w"] | ["write"] => {
@@ -66,6 +68,15 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 }
                             } else {
                                 app.log.log("Error: No open window");
+                            }
+                        }
+                        ["settitle", new_title] => {
+                            if let Some(sw) = app.selected_window_mut() {
+                                sw.ident = Some(new_title.to_string());
+                                app.log
+                                    .log(format!("Successfully set title to {}", new_title));
+                            } else {
+                                app.log.log("No window selected");
                             }
                         }
                         _ => {}
