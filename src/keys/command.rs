@@ -24,14 +24,14 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
             KeyCode::Enter => {
                 let old_mode = std::mem::replace(&mut app.current_mode, Mode::Normal);
                 if let Mode::Command { buffer, .. } = old_mode {
-                    app.log.log(format!("Executing {buffer}..."));
-
                     if buffer.is_empty() {
+                        app.log.log("Empty buffer, aborting");
                         return false;
                     }
 
                     let args = buffer.split_whitespace().collect::<Vec<&str>>();
                     if args.is_empty() {
+                        app.log.log("Empty buffer, aborting");
                         return false;
                     }
 
@@ -97,7 +97,9 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 app.log.log("No window selected");
                             }
                         }
-                        _ => {}
+                        _ => app
+                            .log
+                            .log(format!("Could not find interpretation for {buffer}")),
                     }
                 } else {
                     app.log.log("Error: Not in command mode");
