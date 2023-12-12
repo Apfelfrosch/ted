@@ -4,11 +4,18 @@ version = "0.1.0"
 edition = "2021"
 description = "ted - the tiny editor"
 
+[build-dependencies]
+cc="*"
+
 [dependencies]
 chrono = "0.4.31"
 crossterm = "0.27.0"
 ratatui = "0.24.0"
 ropey = "1.6.1"
+tree-sitter = "0.20.10"
+tree-sitter-rust = "0.20.3"
+tree-sitter-highlight = "^0.20"
+tree-sitter-c = "0.20.6"
 unicode-width = "0.1.11"
 
 [profile.release]

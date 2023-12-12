@@ -28,6 +28,7 @@ use crate::log::Log;
 
 pub mod app;
 pub mod dialog;
+pub mod language;
 pub mod window;
 
 const COMMAND_MODE_BACKGROUND: Color = Color::Rgb(77, 77, 77);
@@ -80,7 +81,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut args = env::args();
     if let Some(path) = args.nth(1) {
         let mut x = |rope: Rope| {
-            let window = Window {
+            let mut window = Window {
                 text: rope,
                 attached_file_path: Some(path.clone()),
                 cursor_char_index: 0,
@@ -88,7 +89,15 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 scroll_x: 0,
                 scroll_y: 0,
                 modified: false,
+                highlight_data: None,
+                language: None,
             };
+            if let Some(lang) = window.try_detect_langauge() {
+                app.log
+                    .log(format!("[STARTUP] Detected {}", lang.display_name()));
+            } else {
+                app.log.log(format!("[STARTUP] Couldn't detect language"));
+            }
             app.edit_windows.push(window);
         };
 

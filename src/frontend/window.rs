@@ -1,13 +1,16 @@
-use std::{fs::File, io::BufReader};
+use std::{cmp::Ordering, fs::File, io::BufReader};
 
 use ratatui::{
     layout::Rect,
-    style::{Color, Style},
+    style::{Color, Style, Stylize},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
 use ropey::Rope;
+use tree_sitter_highlight::{HighlightEvent, Highlighter};
+
+use super::language::{get_highlight_color, Language};
 
 pub struct Window {
     pub ident: Option<String>,
@@ -17,6 +20,27 @@ pub struct Window {
     pub cursor_char_index: usize,
     pub attached_file_path: Option<String>,
     pub modified: bool,
+    pub language: Option<Language>,
+    pub highlight_data: Option<HighlightData>,
+}
+
+pub struct HighlightData {
+    highlights: Vec<(usize, std::ops::Range<usize>, &'static str)>,
+}
+
+impl HighlightData {
+    pub fn find_highlight(&self, byte_index: usize) -> Option<&'static str> {
+        match self.highlights.binary_search_by(|(start, range, _)| {
+            if range.contains(&byte_index) {
+                Ordering::Equal
+            } else {
+                start.cmp(&byte_index)
+            }
+        }) {
+            Ok(pos) => Some(self.highlights[pos].2),
+            Err(_) => None,
+        }
+    }
 }
 
 fn visual_length_of_number(i: usize) -> u32 {
@@ -28,6 +52,53 @@ fn visual_length_of_number(i: usize) -> u32 {
 }
 
 impl Window {
+    pub fn try_detect_langauge(&mut self) -> Option<&Language> {
+        if let Some(attached_path) = &self.attached_file_path {
+            if let Some(language) = Language::by_file_name(&attached_path) {
+                self.language = Some(language);
+                self.refresh_highlighting();
+            }
+        }
+        self.language.as_ref()
+    }
+
+    pub fn refresh_highlighting(&mut self) {
+        let mut highligher = Highlighter::new();
+        let t = self.text.to_string();
+        if let Some(language) = &self.language {
+            if let Some(config) = language.build_highlighter_config() {
+                let mut v: Vec<(usize, std::ops::Range<usize>, &str)> = Vec::new();
+                let text_as_string = self.text.to_string();
+                let highlights = highligher
+                    .highlight(&config, text_as_string.as_bytes(), None, |_| None)
+                    .unwrap();
+
+                let mut last_token_type = None;
+                for event in highlights {
+                    match event.unwrap() {
+                        HighlightEvent::Source { start, end } => {
+                            if let Some(last_token_type) = last_token_type {
+                                let elem = (start, (start..end), last_token_type);
+                                v.push(elem);
+                            }
+                        }
+                        HighlightEvent::HighlightStart(tree_sitter_highlight::Highlight(
+                            token_index,
+                        )) => {
+                            last_token_type =
+                                Some(crate::frontend::language::HIGHLIGHTED_TOKENS[token_index]);
+                        }
+                        HighlightEvent::HighlightEnd => {
+                            last_token_type = None;
+                        }
+                    }
+                }
+                v.sort_by(|(key1, ..), (key2, ..)| key1.cmp(key2));
+                self.highlight_data = Some(HighlightData { highlights: v });
+            }
+        }
+    }
+
     pub fn resolve_title(&self) -> &str {
         self.ident
             .as_ref()
@@ -72,8 +143,8 @@ impl Window {
             .lines_at(self.scroll_y)
             .enumerate()
             .take(layout_rect.height as usize)
-            .fold(Vec::new(), |mut acc, (idx, element)| {
-                let idx = idx + self.scroll_y;
+            .fold(Vec::new(), |mut acc, (o_idx, element)| {
+                let idx = o_idx + self.scroll_y;
                 let mut line_buf = String::with_capacity(max_lines as usize + 1);
 
                 let idx = idx + 1;
@@ -99,10 +170,32 @@ impl Window {
                                     line_string.pop();
                                 }
                 */
-                acc.push(Line::from(vec![
-                    line_span,
-                    Span::styled(line_string.replace('\n', "␊"), Style::new()),
-                ]));
+
+                let mut spans = Vec::new();
+                spans.push(line_span);
+
+                let start_of_current_line = self.text.line_to_char(o_idx);
+
+                for (i, mut c) in element.chars().enumerate() {
+                    if c == '\n' {
+                        c = '␊';
+                    }
+                    let byte_index = self
+                        .text
+                        .try_char_to_byte(start_of_current_line + i)
+                        .expect("Byte not found");
+                    let mut span = Span::from(c.to_string());
+                    if let Some(hd) = &self.highlight_data {
+                        if let Some(token) = hd.find_highlight(byte_index) {
+                            if let Some(color) = get_highlight_color(token) {
+                                span = span.fg(color);
+                            }
+                        }
+                    }
+                    spans.push(span);
+                }
+
+                acc.push(Line::from(spans));
                 acc
             });
         terminal.render_widget(
@@ -172,6 +265,8 @@ impl Default for Window {
             cursor_char_index: 0,
             attached_file_path: Some("a".to_string()),
             modified: false,
+            language: None,
+            highlight_data: None,
         }
     }
 }

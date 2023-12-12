@@ -43,6 +43,8 @@ impl App {
             scroll_x: 0,
             scroll_y: 0,
             text: Rope::new(),
+            language: None,
+            highlight_data: None,
         };
         self.edit_windows.push(window);
         self.edit_windows.len() - 1

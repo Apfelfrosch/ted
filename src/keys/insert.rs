@@ -21,7 +21,12 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
                     }
                 }
             }
-            KeyCode::Esc => app.current_mode = Mode::Normal,
+            KeyCode::Esc => {
+                app.current_mode = Mode::Normal;
+                if let Some(sw) = app.selected_window_mut() {
+                    sw.refresh_highlighting();
+                }
+            }
             KeyCode::Char(c) => {
                 if let Some(sw) = app.selected_window_mut() {
                     sw.text.insert_char(sw.cursor_char_index, c);
