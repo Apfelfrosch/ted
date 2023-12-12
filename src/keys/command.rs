@@ -68,9 +68,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                 app.log.log("No window selected");
                             }
                         }
-                        ["n" | "new"] => {
-                            app.create_empty_window();
-                        }
+                        ["n" | "new"] => app.selected_window = app.create_empty_window(),
                         ["w" | "write"] => {
                             let to_log: String;
                             if let Some(sw) = app.selected_window_mut() {
