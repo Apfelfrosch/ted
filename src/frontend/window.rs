@@ -176,15 +176,18 @@ impl Window {
 
                 let start_of_current_line = self.text.line_to_char(o_idx + self.scroll_y);
 
-                for (i, mut c) in element.chars().enumerate() {
-                    if c == '\n' {
-                        c = '␊';
-                    }
+                for (i, c) in element.chars().enumerate() {
+                    let string_to_use = match c {
+                        '\n' => '␊'.to_string(),
+                        '\t' => "    ".to_string(), // tab as 4 spaces
+                        c => c.to_string(),
+                    };
+
                     let byte_index = self
                         .text
                         .try_char_to_byte(start_of_current_line + i)
                         .expect("Byte not found");
-                    let mut span = Span::from(c.to_string());
+                    let mut span = Span::from(string_to_use);
                     if let Some(hd) = &self.highlight_data {
                         if let Some(token) = hd.find_highlight(byte_index) {
                             if let Some(color) = get_highlight_color(token) {
