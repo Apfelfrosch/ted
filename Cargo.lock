@@ -478,6 +478,7 @@ dependencies = [
  "ropey",
  "tree-sitter",
  "tree-sitter-c",
+ "tree-sitter-go",
  "tree-sitter-highlight",
  "tree-sitter-rust",
  "unicode-width",
@@ -518,6 +519,16 @@ name = "tree-sitter-c"
 version = "0.20.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30b03bdf218020057abee831581a74bff8c298323d6c6cd1a70556430ded9f4b"
+dependencies = [
+ "cc",
+ "tree-sitter",
+]
+
+[[package]]
+name = "tree-sitter-go"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ad6d11f19441b961af2fda7f12f5d0dac325f6d6de83836a1d3750018cc5114"
 dependencies = [
  "cc",
  "tree-sitter",

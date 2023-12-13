@@ -21,6 +21,7 @@ pub fn get_highlight_color(token_type: &str) -> Option<Color> {
 pub enum Language {
     Rust,
     C,
+    Go,
 }
 
 impl Language {
@@ -29,6 +30,8 @@ impl Language {
             Some(Language::Rust)
         } else if s.ends_with(".c") {
             Some(Language::C)
+        } else if s.ends_with(".go") {
+            Some(Language::Go)
         } else {
             None
         }
@@ -38,6 +41,7 @@ impl Language {
         match self {
             Language::Rust => "Rust",
             Language::C => "C",
+            Language::Go => "Go",
         }
     }
 
@@ -61,6 +65,14 @@ impl Language {
                         .ok()?;
                 c_config
             }
+
+            Language::Go => HighlightConfiguration::new(
+                tree_sitter_go::language(),
+                tree_sitter_go::HIGHLIGHT_QUERY,
+                "",
+                "",
+            )
+            .ok()?,
         };
         config.configure(HIGHLIGHTED_TOKENS);
         Some(config)
