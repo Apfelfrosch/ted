@@ -5,6 +5,7 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ropey::Rope;
+use tree_sitter_highlight::Highlighter;
 
 use crate::frontend::{
     app::{App, Mode},
@@ -120,6 +121,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                         modified: false,
                                         language: None,
                                         highlight_data: None,
+                                        highlighter: Highlighter::new(),
                                     };
                                     if let Some(lang) = window.try_detect_langauge() {
                                         app.log.log(format!("Detected {}", lang.display_name()));

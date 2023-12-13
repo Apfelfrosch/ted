@@ -1,4 +1,5 @@
 use ropey::Rope;
+use tree_sitter_highlight::Highlighter;
 
 use crate::log::Log;
 
@@ -45,6 +46,7 @@ impl App {
             text: Rope::new(),
             language: None,
             highlight_data: None,
+            highlighter: Highlighter::new(),
         };
         self.edit_windows.push(window);
         self.edit_windows.len() - 1

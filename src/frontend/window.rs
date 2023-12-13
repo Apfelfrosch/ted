@@ -21,6 +21,7 @@ pub struct Window {
     pub attached_file_path: Option<String>,
     pub modified: bool,
     pub language: Option<Language>,
+    pub highlighter: Highlighter,
     pub highlight_data: Option<HighlightData>,
 }
 
@@ -63,13 +64,12 @@ impl Window {
     }
 
     pub fn refresh_highlighting(&mut self) {
-        let mut highligher = Highlighter::new();
-        let t = self.text.to_string();
         if let Some(language) = &self.language {
             if let Some(config) = language.build_highlighter_config() {
                 let mut v: Vec<(usize, std::ops::Range<usize>, &str)> = Vec::new();
                 let text_as_string = self.text.to_string();
-                let highlights = highligher
+                let highlights = self
+                    .highlighter
                     .highlight(&config, text_as_string.as_bytes(), None, |_| None)
                     .unwrap();
 
@@ -174,7 +174,7 @@ impl Window {
                 let mut spans = Vec::new();
                 spans.push(line_span);
 
-                let start_of_current_line = self.text.line_to_char(o_idx);
+                let start_of_current_line = self.text.line_to_char(o_idx + self.scroll_y);
 
                 for (i, mut c) in element.chars().enumerate() {
                     if c == '\n' {
@@ -267,6 +267,7 @@ impl Default for Window {
             modified: false,
             language: None,
             highlight_data: None,
+            highlighter: Highlighter::new(),
         }
     }
 }

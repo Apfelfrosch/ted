@@ -19,6 +19,7 @@ use std::{
     io::{stderr, BufReader},
     time::Duration,
 };
+use tree_sitter_highlight::Highlighter;
 
 use self::{
     app::{App, Mode},
@@ -91,6 +92,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 modified: false,
                 highlight_data: None,
                 language: None,
+                highlighter: Highlighter::new(),
             };
             if let Some(lang) = window.try_detect_langauge() {
                 app.log
