@@ -68,6 +68,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         ["a" | "attach", param] => {
                             if let Some(sw) = app.selected_window_mut() {
                                 sw.attached_file_path = Some(param.to_string());
+                                sw.try_detect_langauge();
                                 app.log
                                     .log(format!("Attached the current window to {param}"));
                             } else {

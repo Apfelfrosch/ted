@@ -1,10 +1,13 @@
 use ratatui::style::Color;
 use tree_sitter_highlight::HighlightConfiguration;
 
-pub const HIGHLIGHTED_TOKENS: &[&str] = &["keyword", "string"];
+pub const HIGHLIGHTED_TOKENS: &[&str] = &["keyword", "string", "type"];
 
-pub const HIGHLIGHT_THEME: &[(&str, Color)] =
-    &[("keyword", Color::Yellow), ("string", Color::Green)];
+pub const HIGHLIGHT_THEME: &[(&str, Color)] = &[
+    ("keyword", Color::Yellow),
+    ("string", Color::Green),
+    ("type", Color::Yellow),
+];
 
 pub fn get_highlight_color(token_type: &str) -> Option<Color> {
     for (k, c) in HIGHLIGHT_THEME.iter() {
@@ -17,12 +20,15 @@ pub fn get_highlight_color(token_type: &str) -> Option<Color> {
 
 pub enum Language {
     Rust,
+    C,
 }
 
 impl Language {
     pub fn by_file_name(s: &str) -> Option<Language> {
         if s.ends_with(".rs") {
             Some(Language::Rust)
+        } else if s.ends_with(".c") {
+            Some(Language::C)
         } else {
             None
         }
@@ -31,24 +37,32 @@ impl Language {
     pub fn display_name(&self) -> &'static str {
         match self {
             Language::Rust => "Rust",
+            Language::C => "C",
         }
     }
 
     pub fn build_highlighter_config(&self) -> Option<HighlightConfiguration> {
-        match self {
+        let mut config = match self {
             Language::Rust => {
                 let rust_language = tree_sitter_rust::language();
-                let mut rust_config = HighlightConfiguration::new(
+                let rust_config = HighlightConfiguration::new(
                     rust_language,
                     tree_sitter_rust::HIGHLIGHT_QUERY,
                     tree_sitter_rust::INJECTIONS_QUERY,
                     "",
                 )
                 .ok()?;
-                rust_config.configure(HIGHLIGHTED_TOKENS);
-                Some(rust_config)
+                rust_config
             }
-            _ => None,
-        }
+            Language::C => {
+                let c_language = tree_sitter_c::language();
+                let c_config =
+                    HighlightConfiguration::new(c_language, tree_sitter_c::HIGHLIGHT_QUERY, "", "")
+                        .ok()?;
+                c_config
+            }
+        };
+        config.configure(HIGHLIGHTED_TOKENS);
+        Some(config)
     }
 }
