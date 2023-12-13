@@ -10,7 +10,6 @@ use super::{app::App, COMMAND_MODE_BACKGROUND};
 
 pub enum Dialog {
     Logs,
-    Help,
     Windows,
 }
 
@@ -91,31 +90,6 @@ impl Dialog {
                     .collect();
                 let block = Dialog::create_block().title("Log");
                 terminal.render_widget(Paragraph::new(lines).block(block), area);
-            }
-            Dialog::Help => {
-                let block = Dialog::create_block().title("Help");
-                terminal.render_widget(
-                    Paragraph::new(
-                        [
-                            "Normal Mode",
-                            "q - quit",
-                            "L - display log",
-                            "H - display this help",
-                            "i - go into insert mode",
-                            "h - go right",
-                            "j - go down",
-                            "k - go up",
-                            "l - go right",
-                            "<Esc> - close dialogs",
-                        ]
-                        .iter()
-                        .map(ToString::to_string)
-                        .map(Line::from)
-                        .collect::<Vec<Line>>(),
-                    )
-                    .block(block),
-                    area,
-                );
             }
         }
     }
