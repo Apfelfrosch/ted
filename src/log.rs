@@ -23,10 +23,6 @@ impl Log {
     pub fn take_lines(&self) -> impl Iterator<Item = String> + '_ {
         self.internal.iter().map(LogEntry::render_to_string)
     }
-
-    pub fn len(&self) -> usize {
-        self.internal.len()
-    }
 }
 
 struct LogEntry {

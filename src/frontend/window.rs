@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fs::File, io::BufReader};
+use std::cmp::Ordering;
 
 use ratatui::{
     layout::Rect,
@@ -55,7 +55,7 @@ fn visual_length_of_number(i: usize) -> u32 {
 impl Window {
     pub fn try_detect_langauge(&mut self) -> Option<&Language> {
         if let Some(attached_path) = &self.attached_file_path {
-            if let Some(language) = Language::by_file_name(&attached_path) {
+            if let Some(language) = Language::by_file_name(attached_path) {
                 self.language = Some(language);
                 self.refresh_highlighting();
             }
@@ -161,16 +161,6 @@ impl Window {
                     return acc;
                 }
 
-                #[allow(unused_mut)]
-                let mut line_string = element.chars_at(self.scroll_x).collect::<String>();
-                /*
-                                if line_string.ends_with("\r\n") {
-                                    line_string.truncate(line_string.len() - 2);
-                                } else if line_string.ends_with("\n") {
-                                    line_string.pop();
-                                }
-                */
-
                 let mut spans = Vec::new();
                 spans.push(line_span);
 
@@ -248,29 +238,5 @@ impl Window {
             layout_rect.x + cursor_x as u16,
             layout_rect.y + cursor_y as u16,
         );
-    }
-}
-
-static mut x: usize = 1;
-
-impl Default for Window {
-    fn default() -> Self {
-        let y = unsafe {
-            let t = x;
-            x += 1;
-            t
-        };
-        Window {
-            ident: Some(format!("Window #{y}").to_string()),
-            text: Rope::from_reader(BufReader::new(File::open("test_text.txt").unwrap())).unwrap(),
-            scroll_x: 0,
-            scroll_y: 0,
-            cursor_char_index: 0,
-            attached_file_path: Some("a".to_string()),
-            modified: false,
-            language: None,
-            highlight_data: None,
-            highlighter: Highlighter::new(),
-        }
     }
 }

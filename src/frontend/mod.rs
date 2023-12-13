@@ -98,7 +98,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 app.log
                     .log(format!("[STARTUP] Detected {}", lang.display_name()));
             } else {
-                app.log.log(format!("[STARTUP] Couldn't detect language"));
+                app.log.log("[STARTUP] Couldn't detect language");
             }
             app.edit_windows.push(window);
         };

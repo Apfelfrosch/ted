@@ -126,7 +126,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                     if let Some(lang) = window.try_detect_langauge() {
                                         app.log.log(format!("Detected {}", lang.display_name()));
                                     } else {
-                                        app.log.log(format!("Couldn't detect language"));
+                                        app.log.log("Couldn't detect language");
                                     }
                                     app.edit_windows.push(window);
                                     app.selected_window = app.edit_windows.len() - 1;

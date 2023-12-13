@@ -49,21 +49,19 @@ impl Language {
         let mut config = match self {
             Language::Rust => {
                 let rust_language = tree_sitter_rust::language();
-                let rust_config = HighlightConfiguration::new(
+                HighlightConfiguration::new(
                     rust_language,
                     tree_sitter_rust::HIGHLIGHT_QUERY,
                     tree_sitter_rust::INJECTIONS_QUERY,
                     "",
                 )
-                .ok()?;
-                rust_config
+                .ok()?
             }
             Language::C => {
                 let c_language = tree_sitter_c::language();
-                let c_config =
-                    HighlightConfiguration::new(c_language, tree_sitter_c::HIGHLIGHT_QUERY, "", "")
-                        .ok()?;
-                c_config
+
+                HighlightConfiguration::new(c_language, tree_sitter_c::HIGHLIGHT_QUERY, "", "")
+                    .ok()?
             }
 
             Language::Go => HighlightConfiguration::new(
