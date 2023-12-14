@@ -22,6 +22,9 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
                 }
             }
             KeyCode::Esc => {
+                if let Some(sw) = app.selected_window_mut() {
+                    sw.cursor_char_index = sw.cursor_char_index.min(sw.text.len_chars().max(1) - 1);
+                }
                 app.current_mode = Mode::Normal;
             }
             KeyCode::Char(c) => {

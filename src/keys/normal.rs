@@ -16,7 +16,14 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         char_idx: 0,
                     }
                 }
-                'a' => app.selected_window = if app.selected_window == 0 { 1 } else { 0 },
+                'a' => {
+                    if let Some(sw) = app.selected_window_mut() {
+                        if sw.cursor_char_index + 1 <= sw.text.len_chars() {
+                            sw.cursor_char_index += 1;
+                        }
+                        app.current_mode = Mode::Insert;
+                    }
+                }
                 'i' => {
                     if app.edit_windows.is_empty() {
                         app.log.log("Error: No open windows");
