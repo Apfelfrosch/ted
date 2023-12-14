@@ -18,7 +18,7 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                 }
                 'a' => {
                     if let Some(sw) = app.selected_window_mut() {
-                        if sw.cursor_char_index + 1 <= sw.text.len_chars() {
+                        if sw.cursor_char_index < sw.text.len_chars() {
                             sw.cursor_char_index += 1;
                         }
                         app.current_mode = Mode::Insert;

@@ -1,5 +1,5 @@
 use crossterm::{
-    cursor::{self, SetCursorStyle},
+    cursor::SetCursorStyle,
     event::{self},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
@@ -9,7 +9,7 @@ use ratatui::{
     prelude::{Constraint, CrosstermBackend, Direction, Layout},
     style::{Color, Stylize},
     text::{Line, Span},
-    widgets::{Block, Paragraph},
+    widgets::Paragraph,
     Terminal,
 };
 use ropey::Rope;
@@ -234,11 +234,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                     app.selected_window = app.edit_windows.len() - 1;
                 }
 
-                let highlight_line_number = if let Mode::Command { .. } = app.current_mode {
-                    false
-                } else {
-                    true
-                };
+                let highlight_line_number = !matches!(app.current_mode, Mode::Command { .. });
 
                 if let Some(sw) = app.selected_window_mut() {
                     sw.render(frame, layout[0], highlight_line_number);
