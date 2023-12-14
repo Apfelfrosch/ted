@@ -128,7 +128,7 @@ impl Window {
 
                 let idx = idx + 1;
                 for _ in 0..(max_lines - visual_length_of_number(idx)) {
-                    line_buf.push('0');
+                    line_buf.push(' ');
                 }
 
                 line_buf.push_str(&idx.to_string());
