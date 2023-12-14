@@ -13,11 +13,12 @@ use ratatui::{
 };
 use ropey::Rope;
 use std::{
+    collections::HashMap,
     env,
     error::Error,
     fs::File,
     io::{stderr, BufReader},
-    sync::mpsc,
+    sync::mpsc::{self, Sender, TryRecvError},
     thread,
     time::Duration,
 };
@@ -78,50 +79,67 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let (send_hl_job_result, recv_hl_job_result) = mpsc::channel::<HighlightJobResult>();
 
     thread::spawn(move || {
-        let mut highlighter = Highlighter::new();
+        let mut window_uuid_to_cancel_sender = HashMap::<usize, Sender<()>>::new();
+        let send_hl_job_result = send_hl_job_result;
         loop {
             let highlight_job = recv_hl_job.recv();
             if highlight_job.is_err() {
                 return;
             }
             let highlight_job = highlight_job.unwrap();
-            let text = highlight_job.text.to_string();
-            let highlight_config = highlight_job
-                .language
-                .build_highlighter_config()
-                .expect("Could not build job hl config");
-            let mut v: Vec<(usize, std::ops::Range<usize>, &str)> = Vec::new();
-            let highlights = highlighter
-                .highlight(&highlight_config, text.as_bytes(), None, |_| None)
-                .unwrap();
+            if let Some(cancel_sender) =
+                window_uuid_to_cancel_sender.remove(&highlight_job.window_uuid)
+            {
+                let _ = cancel_sender.send(());
+            }
+            let send_hl_job_result = send_hl_job_result.clone();
+            let (cancel_sender, cancel_recv) = mpsc::channel::<()>();
+            window_uuid_to_cancel_sender.insert(highlight_job.window_uuid, cancel_sender);
+            thread::spawn(move || {
+                let mut highlighter = Highlighter::new();
+                let text = highlight_job.text.to_string();
+                let highlight_config = highlight_job
+                    .language
+                    .build_highlighter_config()
+                    .expect("Could not build job hl config");
+                let mut v: Vec<(usize, std::ops::Range<usize>, &str)> = Vec::new();
+                let highlights = highlighter
+                    .highlight(&highlight_config, text.as_bytes(), None, |_| None)
+                    .unwrap();
 
-            let mut last_token_type = None;
-            for event in highlights {
-                match event.unwrap() {
-                    HighlightEvent::Source { start, end } => {
-                        if let Some(last_token_type) = last_token_type {
-                            let elem = (start, (start..end), last_token_type);
-                            v.push(elem);
-                        }
-                    }
-                    HighlightEvent::HighlightStart(tree_sitter_highlight::Highlight(
-                        token_index,
-                    )) => {
-                        last_token_type =
-                            Some(crate::frontend::language::HIGHLIGHTED_TOKENS[token_index]);
-                    }
-                    HighlightEvent::HighlightEnd => {
-                        last_token_type = None;
+                let mut last_token_type = None;
+                for event in highlights {
+                    match cancel_recv.try_recv() {
+                        Ok(_) => return,
+                        Err(TryRecvError::Disconnected) => return,
+                        _ => match event.unwrap() {
+                            HighlightEvent::Source { start, end } => {
+                                if let Some(last_token_type) = last_token_type {
+                                    let elem = (start, (start..end), last_token_type);
+                                    v.push(elem);
+                                }
+                            }
+                            HighlightEvent::HighlightStart(tree_sitter_highlight::Highlight(
+                                token_index,
+                            )) => {
+                                last_token_type = Some(
+                                    crate::frontend::language::HIGHLIGHTED_TOKENS[token_index],
+                                );
+                            }
+                            HighlightEvent::HighlightEnd => {
+                                last_token_type = None;
+                            }
+                        },
                     }
                 }
-            }
-            v.sort_by(|(key1, ..), (key2, ..)| key1.cmp(key2));
-            send_hl_job_result
-                .send(HighlightJobResult {
-                    window_uuid: highlight_job.window_uuid,
-                    highlights: v,
-                })
-                .expect("Could not send job result");
+                v.sort_by(|(key1, ..), (key2, ..)| key1.cmp(key2));
+                send_hl_job_result
+                    .send(HighlightJobResult {
+                        window_uuid: highlight_job.window_uuid,
+                        highlights: v,
+                    })
+                    .expect("Could not send job result");
+            });
         }
     });
 
