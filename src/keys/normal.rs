@@ -24,6 +24,26 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         app.current_mode = Mode::Insert;
                     }
                 }
+                'O' => {
+                    if let Some(sw) = app.selected_window_mut() {
+                        let current_line = sw.text.char_to_line(sw.cursor_char_index);
+                        let start_line = sw.text.line_to_char(current_line);
+                        sw.text.insert_char(start_line, '\n');
+                        sw.cursor_char_index = start_line;
+                        app.current_mode = Mode::Insert;
+                        app.queue_selected_window_highlight_refresh();
+                    }
+                }
+                'o' => {
+                    if let Some(sw) = app.selected_window_mut() {
+                        let current_line = sw.text.char_to_line(sw.cursor_char_index);
+                        let next_line = sw.text.line_to_char(current_line + 1);
+                        sw.text.insert_char(next_line, '\n');
+                        sw.cursor_char_index = next_line + 1;
+                        app.current_mode = Mode::Insert;
+                        app.queue_selected_window_highlight_refresh();
+                    }
+                }
                 'G' => {
                     if let Some(sw) = app.selected_window_mut() {
                         if sw.text.len_chars() != 0 {
