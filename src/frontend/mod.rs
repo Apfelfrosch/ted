@@ -1,4 +1,5 @@
 use crossterm::{
+    cursor::{self, SetCursorStyle},
     event::{self},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
@@ -8,7 +9,7 @@ use ratatui::{
     prelude::{Constraint, CrosstermBackend, Direction, Layout},
     style::{Color, Stylize},
     text::{Line, Span},
-    widgets::Paragraph,
+    widgets::{Block, Paragraph},
     Terminal,
 };
 use ropey::Rope;
@@ -70,6 +71,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     initialize_panic_hook();
 
     stderr().execute(EnterAlternateScreen)?;
+    stderr().execute(SetCursorStyle::SteadyBlock)?;
     enable_raw_mode()?;
 
     let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
