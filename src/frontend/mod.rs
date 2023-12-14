@@ -194,7 +194,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
 
     loop {
-        let hl_job_result = recv_hl_job_result.recv_timeout(Duration::from_micros(1));
+        let hl_job_result = recv_hl_job_result.try_recv();
 
         if let Ok(hl_job_result) = hl_job_result {
             for w in app.edit_windows.iter_mut() {
