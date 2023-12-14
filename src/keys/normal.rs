@@ -34,6 +34,17 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         }
                     }
                 }
+                's' => {
+                    if let Some(sw) = app.selected_window_mut() {
+                        if !(sw.text.len_chars() == 0
+                            || sw.cursor_char_index >= sw.text.len_chars())
+                        {
+                            sw.text.remove(sw.cursor_char_index..=sw.cursor_char_index);
+                            app.current_mode = Mode::Insert;
+                            app.queue_selected_window_highlight_refresh();
+                        }
+                    }
+                }
                 'O' => {
                     if let Some(sw) = app.selected_window_mut() {
                         let current_line = sw.text.char_to_line(sw.cursor_char_index);
