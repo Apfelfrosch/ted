@@ -74,6 +74,7 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                             } else {
                                 app.log.log("No window selected");
                             }
+                            app.queue_selected_window_highlight_refresh();
                         }
                         ["n" | "new"] => app.selected_window = app.create_empty_window(),
                         ["w" | "write"] => {
