@@ -9,7 +9,10 @@ use ratatui::{
 };
 use ropey::Rope;
 
-use super::language::{get_highlight_color, Language};
+use super::{
+    language::{get_highlight_color, Language},
+    COMMAND_MODE_BACKGROUND,
+};
 
 pub struct Window {
     pub uuid: usize,
@@ -86,7 +89,12 @@ impl Window {
             .unwrap_or("Untitled")
     }
 
-    pub fn render(&mut self, terminal: &mut Frame<'_>, layout_rect: Rect, _is_selected: bool) {
+    pub fn render(
+        &mut self,
+        terminal: &mut Frame<'_>,
+        layout_rect: Rect,
+        highlight_line_number: bool,
+    ) {
         if layout_rect.height < 2 {
             return;
         }
@@ -132,8 +140,13 @@ impl Window {
                 }
 
                 line_buf.push_str(&idx.to_string());
-                line_buf.push(' ');
-                let line_span = Span::styled(line_buf, Style::new().fg(Color::Yellow));
+                let mut line_span = Span::styled(line_buf, Style::new().fg(Color::Yellow));
+
+                if highlight_line_number
+                    && o_idx + self.scroll_y == self.text.char_to_line(self.cursor_char_index)
+                {
+                    line_span = line_span.bg(COMMAND_MODE_BACKGROUND);
+                }
 
                 if self.scroll_x >= element.len_chars() {
                     acc.push(Line::from(line_span));
@@ -142,6 +155,7 @@ impl Window {
 
                 let mut spans = Vec::new();
                 spans.push(line_span);
+                spans.push(Span::from(" "));
 
                 let start_of_current_line = self.text.line_to_char(o_idx + self.scroll_y);
 

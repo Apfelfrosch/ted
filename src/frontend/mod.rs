@@ -232,8 +232,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                     app.selected_window = app.edit_windows.len() - 1;
                 }
 
+                let highlight_line_number = if let Mode::Command { .. } = app.current_mode {
+                    false
+                } else {
+                    true
+                };
+
                 if let Some(sw) = app.selected_window_mut() {
-                    sw.render(frame, layout[0], true);
+                    sw.render(frame, layout[0], highlight_line_number);
                     sw.render_cursor(frame, layout[0]);
                 }
             }
