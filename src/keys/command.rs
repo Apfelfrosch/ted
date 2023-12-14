@@ -5,7 +5,6 @@ use std::{
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ropey::Rope;
-use tree_sitter_highlight::Highlighter;
 
 use crate::frontend::{
     app::{App, Mode},
@@ -111,24 +110,15 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         ["o" | "open", path] => match File::open(path) {
                             Ok(f) => match Rope::from_reader(BufReader::new(f)) {
                                 Ok(rope) => {
-                                    let mut window = Window {
-                                        text: rope,
-                                        attached_file_path: Some(path.to_string()),
-                                        cursor_char_index: 0,
-                                        ident: None,
-                                        scroll_x: 0,
-                                        scroll_y: 0,
-                                        modified: false,
-                                        language: None,
-                                        highlight_data: None,
-                                        highlighter: Highlighter::new(),
-                                    };
+                                    let window_index = app.create_empty_window();
+                                    let window = &mut app.edit_windows[window_index];
+                                    window.text = rope;
+                                    window.attached_file_path = Some(path.to_string());
                                     if let Some(lang) = window.try_detect_langauge() {
                                         app.log.log(format!("Detected {}", lang.display_name()));
                                     } else {
                                         app.log.log("Couldn't detect language");
                                     }
-                                    app.edit_windows.push(window);
                                     app.selected_window = app.edit_windows.len() - 1;
                                     app.log.log(format!("Successfully opened {path}"));
                                 }

@@ -8,11 +8,11 @@ use ratatui::{
     Frame,
 };
 use ropey::Rope;
-use tree_sitter_highlight::{HighlightEvent, Highlighter};
 
 use super::language::{get_highlight_color, Language};
 
 pub struct Window {
+    pub uuid: usize,
     pub ident: Option<String>,
     pub text: Rope,
     pub scroll_x: usize,
@@ -21,15 +21,31 @@ pub struct Window {
     pub attached_file_path: Option<String>,
     pub modified: bool,
     pub language: Option<Language>,
-    pub highlighter: Highlighter,
     pub highlight_data: Option<HighlightData>,
 }
 
+pub struct HighlightJob {
+    pub text: Rope,
+    pub window_uuid: usize,
+    pub language: Language,
+}
+
+type ByteRangeHighlightData = (usize, std::ops::Range<usize>, &'static str);
+
+pub struct HighlightJobResult {
+    pub window_uuid: usize,
+    pub highlights: Vec<ByteRangeHighlightData>,
+}
+
 pub struct HighlightData {
-    highlights: Vec<(usize, std::ops::Range<usize>, &'static str)>,
+    highlights: Vec<ByteRangeHighlightData>,
 }
 
 impl HighlightData {
+    pub fn new(highlights: Vec<ByteRangeHighlightData>) -> Self {
+        Self { highlights }
+    }
+
     pub fn find_highlight(&self, byte_index: usize) -> Option<&'static str> {
         match self.highlights.binary_search_by(|(start, range, _)| {
             if range.contains(&byte_index) {
@@ -57,46 +73,9 @@ impl Window {
         if let Some(attached_path) = &self.attached_file_path {
             if let Some(language) = Language::by_file_name(attached_path) {
                 self.language = Some(language);
-                self.refresh_highlighting();
             }
         }
         self.language.as_ref()
-    }
-
-    pub fn refresh_highlighting(&mut self) {
-        if let Some(language) = &self.language {
-            if let Some(config) = language.build_highlighter_config() {
-                let mut v: Vec<(usize, std::ops::Range<usize>, &str)> = Vec::new();
-                let text_as_string = self.text.to_string();
-                let highlights = self
-                    .highlighter
-                    .highlight(&config, text_as_string.as_bytes(), None, |_| None)
-                    .unwrap();
-
-                let mut last_token_type = None;
-                for event in highlights {
-                    match event.unwrap() {
-                        HighlightEvent::Source { start, end } => {
-                            if let Some(last_token_type) = last_token_type {
-                                let elem = (start, (start..end), last_token_type);
-                                v.push(elem);
-                            }
-                        }
-                        HighlightEvent::HighlightStart(tree_sitter_highlight::Highlight(
-                            token_index,
-                        )) => {
-                            last_token_type =
-                                Some(crate::frontend::language::HIGHLIGHTED_TOKENS[token_index]);
-                        }
-                        HighlightEvent::HighlightEnd => {
-                            last_token_type = None;
-                        }
-                    }
-                }
-                v.sort_by(|(key1, ..), (key2, ..)| key1.cmp(key2));
-                self.highlight_data = Some(HighlightData { highlights: v });
-            }
-        }
     }
 
     pub fn resolve_title(&self) -> &str {

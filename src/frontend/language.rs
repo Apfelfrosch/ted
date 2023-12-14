@@ -18,6 +18,7 @@ pub fn get_highlight_color(token_type: &str) -> Option<Color> {
     None
 }
 
+#[derive(Copy, Clone)]
 pub enum Language {
     Rust,
     C,

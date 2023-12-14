@@ -17,13 +17,15 @@ use std::{
     error::Error,
     fs::File,
     io::{stderr, BufReader},
+    sync::mpsc,
+    thread,
     time::Duration,
 };
-use tree_sitter_highlight::Highlighter;
+use tree_sitter_highlight::{HighlightEvent, Highlighter};
 
 use self::{
     app::{App, Mode},
-    window::Window,
+    window::{HighlightData, HighlightJob, HighlightJobResult},
 };
 use crate::log::Log;
 
@@ -72,35 +74,80 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stderr()))?;
     terminal.clear()?;
 
+    let (send_hl_job, recv_hl_job) = mpsc::channel::<HighlightJob>();
+    let (send_hl_job_result, recv_hl_job_result) = mpsc::channel::<HighlightJobResult>();
+
+    thread::spawn(move || {
+        let mut highlighter = Highlighter::new();
+        loop {
+            let highlight_job = recv_hl_job.recv();
+            if highlight_job.is_err() {
+                return;
+            }
+            let highlight_job = highlight_job.unwrap();
+            let text = highlight_job.text.to_string();
+            let highlight_config = highlight_job
+                .language
+                .build_highlighter_config()
+                .expect("Could not build job hl config");
+            let mut v: Vec<(usize, std::ops::Range<usize>, &str)> = Vec::new();
+            let highlights = highlighter
+                .highlight(&highlight_config, text.as_bytes(), None, |_| None)
+                .unwrap();
+
+            let mut last_token_type = None;
+            for event in highlights {
+                match event.unwrap() {
+                    HighlightEvent::Source { start, end } => {
+                        if let Some(last_token_type) = last_token_type {
+                            let elem = (start, (start..end), last_token_type);
+                            v.push(elem);
+                        }
+                    }
+                    HighlightEvent::HighlightStart(tree_sitter_highlight::Highlight(
+                        token_index,
+                    )) => {
+                        last_token_type =
+                            Some(crate::frontend::language::HIGHLIGHTED_TOKENS[token_index]);
+                    }
+                    HighlightEvent::HighlightEnd => {
+                        last_token_type = None;
+                    }
+                }
+            }
+            v.sort_by(|(key1, ..), (key2, ..)| key1.cmp(key2));
+            send_hl_job_result
+                .send(HighlightJobResult {
+                    window_uuid: highlight_job.window_uuid,
+                    highlights: v,
+                })
+                .expect("Could not send job result");
+        }
+    });
+
     let mut app = App {
+        uuid_counter: 0,
         edit_windows: Vec::new(),
         selected_window: 0,
         log: Log::new(),
         current_mode: Mode::Normal,
+        highlight_job_queue: send_hl_job,
     };
 
     let mut args = env::args();
     if let Some(path) = args.nth(1) {
         let mut x = |rope: Rope| {
-            let mut window = Window {
-                text: rope,
-                attached_file_path: Some(path.clone()),
-                cursor_char_index: 0,
-                ident: None,
-                scroll_x: 0,
-                scroll_y: 0,
-                modified: false,
-                highlight_data: None,
-                language: None,
-                highlighter: Highlighter::new(),
-            };
+            let window_index = app.create_empty_window();
+            let window = &mut app.edit_windows[window_index];
+            window.text = rope;
+            window.attached_file_path = Some(path.clone());
             if let Some(lang) = window.try_detect_langauge() {
                 app.log
                     .log(format!("[STARTUP] Detected {}", lang.display_name()));
             } else {
                 app.log.log("[STARTUP] Couldn't detect language");
             }
-            app.edit_windows.push(window);
+            app.queue_selected_window_highlight_refresh();
         };
 
         match File::open(&path) {
@@ -129,6 +176,17 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     }
 
     loop {
+        let hl_job_result = recv_hl_job_result.recv_timeout(Duration::from_micros(1));
+
+        if let Ok(hl_job_result) = hl_job_result {
+            for w in app.edit_windows.iter_mut() {
+                if hl_job_result.window_uuid == w.uuid {
+                    w.highlight_data = Some(HighlightData::new(hl_job_result.highlights));
+                    break;
+                }
+            }
+        }
+
         terminal.draw(|frame| {
             let layout = Layout::default()
                 .direction(Direction::Vertical)

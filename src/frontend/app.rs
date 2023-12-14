@@ -1,9 +1,13 @@
+use std::sync::mpsc::Sender;
+
 use ropey::Rope;
-use tree_sitter_highlight::Highlighter;
 
 use crate::log::Log;
 
-use super::{dialog::Dialog, window::Window};
+use super::{
+    dialog::Dialog,
+    window::{HighlightJob, Window},
+};
 
 pub enum Mode {
     Normal,
@@ -24,10 +28,12 @@ impl Mode {
 }
 
 pub struct App {
+    pub uuid_counter: usize,
     pub edit_windows: Vec<Window>,
     pub selected_window: usize,
     pub log: Log,
     pub current_mode: Mode,
+    pub highlight_job_queue: Sender<HighlightJob>,
 }
 
 impl App {
@@ -37,17 +43,18 @@ impl App {
 
     pub fn create_empty_window(&mut self) -> usize {
         let window = Window {
-            attached_file_path: None,
-            cursor_char_index: 0,
+            uuid: self.uuid_counter,
             ident: None,
-            modified: false,
+            text: Rope::new(),
             scroll_x: 0,
             scroll_y: 0,
-            text: Rope::new(),
+            cursor_char_index: 0,
+            attached_file_path: None,
+            modified: false,
             language: None,
             highlight_data: None,
-            highlighter: Highlighter::new(),
         };
+        self.uuid_counter += 1;
         self.edit_windows.push(window);
         self.edit_windows.len() - 1
     }
@@ -77,6 +84,20 @@ impl App {
             None
         } else {
             Some(&mut self.edit_windows[self.selected_window])
+        }
+    }
+
+    pub fn queue_selected_window_highlight_refresh(&self) {
+        if let Some(sw) = self.selected_window() {
+            if let Some(lang) = &sw.language {
+                self.highlight_job_queue
+                    .send(HighlightJob {
+                        text: sw.text.clone(),
+                        window_uuid: sw.uuid,
+                        language: *lang,
+                    })
+                    .expect("Could not send highlight job");
+            }
         }
     }
 
