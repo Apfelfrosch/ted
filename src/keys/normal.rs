@@ -1,5 +1,4 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
-use ratatui::symbols::line;
 
 use crate::frontend::{
     app::{App, Mode},
