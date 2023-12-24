@@ -7,7 +7,7 @@ use std::io::Write;
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use ropey::Rope;
-use tempfile::NamedTempFile;
+use tempfile::Builder;
 
 use crate::frontend::{
     app::{App, Mode},
@@ -153,18 +153,27 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                         ["format" | "fmt"] => {
                             if let Some(sw) = app.selected_window_mut() {
                                 if let Some(lang) = sw.language {
-                                    match NamedTempFile::with_prefix("ted_format_") {
+                                    match Builder::new()
+                                        .prefix("ted_format_")
+                                        .suffix(".go")
+                                        .tempfile()
+                                    {
                                         Ok(mut f) => match write!(f, "{}", sw.text) {
                                             Ok(_) => {
                                                 if let Some(mut cmd) =
                                                     lang.format_command(f.path().to_str().unwrap())
                                                 {
-                                                    let output =
-                                                        cmd.output().expect("Could not format!");
+                                                    let output = cmd
+                                                        .output()
+                                                        .expect("Failed to run command");
                                                     let mut new_text =
                                                         std::fs::read_to_string(f).unwrap();
                                                     new_text = new_text.replace('\t', "    ");
                                                     sw.text = Rope::from_str(new_text.as_str());
+                                                    if sw.cursor_char_index >= sw.text.len_chars() {
+                                                        sw.cursor_char_index =
+                                                            sw.text.len_chars().max(1) - 1;
+                                                    }
                                                     app.log.log(format!(
                                                         "Successfully formatted! Exit code: {}",
                                                         output.status.code().unwrap_or(0)

@@ -52,7 +52,8 @@ impl Language {
         match self {
             Language::C => None,
             Language::Go => {
-                let mut cmd = Command::new("go fmt");
+                let mut cmd = Command::new("go");
+                cmd.arg("fmt");
                 cmd.arg(p);
                 Some(cmd)
             }
