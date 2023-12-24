@@ -21,6 +21,7 @@ tree-sitter-highlight = "^0.20"
 tree-sitter-c = "0.20.6"
 unicode-width = "0.1.11"
 tree-sitter-go = "0.20.0"
+tempfile = "3.8.1"
 
 [profile.release]
 codegen-units = 1

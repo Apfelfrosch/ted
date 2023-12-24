@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use ratatui::style::Color;
 use tree_sitter_highlight::HighlightConfiguration;
 
@@ -43,6 +45,22 @@ impl Language {
             Language::Rust => "Rust",
             Language::C => "C",
             Language::Go => "Go",
+        }
+    }
+
+    pub fn format_command(&self, p: &str) -> Option<Command> {
+        match self {
+            Language::C => None,
+            Language::Go => {
+                let mut cmd = Command::new("go fmt");
+                cmd.arg(p);
+                Some(cmd)
+            }
+            Language::Rust => {
+                let mut cmd = Command::new("rustfmt");
+                cmd.arg(p);
+                Some(cmd)
+            }
         }
     }
 
