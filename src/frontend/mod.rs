@@ -1,3 +1,4 @@
+use chrono::Local;
 use crossterm::{
     cursor::SetCursorStyle,
     event::{self},
@@ -277,8 +278,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 status_layout[0],
             );
             frame.render_widget(
-                Paragraph::new(Line::from(Span::from(app.current_mode.display_name())))
-                    .alignment(ratatui::layout::Alignment::Right),
+                Paragraph::new(Line::from(Span::from(
+                    Local::now().format("%H:%M:%S").to_string(),
+                )))
+                .alignment(ratatui::layout::Alignment::Right),
                 status_layout[1],
             );
         })?;
