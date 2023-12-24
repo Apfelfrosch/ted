@@ -1,4 +1,5 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
+use tree_sitter::TextProvider;
 
 use crate::frontend::{
     app::{App, Mode},
@@ -106,7 +107,13 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                             return false;
                         }
                         let start_of_next_line = text.line_to_char(current_line_index + 1);
-                        sw.cursor_char_index = start_of_next_line;
+
+                        let line_offset =
+                            sw.cursor_char_index - text.line_to_char(current_line_index);
+                        let next_line_slice = text.line(current_line_index + 1);
+                        let new_offset = line_offset.min(next_line_slice.len_chars());
+
+                        sw.cursor_char_index = start_of_next_line + new_offset;
                     }
                 }
                 'k' => {
