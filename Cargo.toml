@@ -21,7 +21,6 @@ tree-sitter-highlight = "^0.20"
 tree-sitter-c = "0.20.6"
 unicode-width = "0.1.11"
 tree-sitter-go = "0.20.0"
-lazy_static = "1.4.0"
 
 [profile.release]
 codegen-units = 1
