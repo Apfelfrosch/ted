@@ -161,7 +161,6 @@ impl Window {
 
                 for (i, c) in element.chars().enumerate() {
                     let string_to_use = match c {
-                        '\n' => '␊'.to_string(),
                         '\t' => "    ".to_string(), // tab as 4 spaces
                         c => c.to_string(),
                     };
