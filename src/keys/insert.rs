@@ -12,6 +12,12 @@ pub fn process_keys_insert(event: KeyEvent, app: &mut App) -> bool {
                     sw.cursor_char_index += 1;
                 }
             }
+            KeyCode::Tab => {
+                if let Some(sw) = app.selected_window_mut() {
+                    sw.text.insert(sw.cursor_char_index, "    ");
+                    sw.cursor_char_index += 4;
+                }
+            }
             KeyCode::Backspace => {
                 if let Some(sw) = app.selected_window_mut() {
                     if sw.cursor_char_index > 0 {
