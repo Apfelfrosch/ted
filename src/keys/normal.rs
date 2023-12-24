@@ -67,7 +67,7 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                         let current_line = sw.text.char_to_line(sw.cursor_char_index);
                         let next_line = sw.text.line_to_char(current_line + 1);
                         sw.text.insert_char(next_line, '\n');
-                        sw.cursor_char_index = next_line + 1;
+                        sw.cursor_char_index = next_line;
                         app.current_mode = Mode::Insert;
                         app.queue_selected_window_highlight_refresh();
                     }
