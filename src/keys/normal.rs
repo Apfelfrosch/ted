@@ -1,4 +1,5 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
+use ratatui::symbols::line;
 
 use crate::frontend::{
     app::{App, Mode},
@@ -54,20 +55,23 @@ pub fn process_keys_normal(event: KeyEvent, app: &mut App) -> bool {
                 }
                 'O' => {
                     if let Some(sw) = app.selected_window_mut() {
-                        let current_line = sw.text.char_to_line(sw.cursor_char_index);
-                        let start_line = sw.text.line_to_char(current_line);
-                        sw.text.insert_char(start_line, '\n');
-                        sw.cursor_char_index = start_line;
+                        let line_index = sw.text.char_to_line(sw.cursor_char_index);
+                        let idx = sw.text.line_to_char(line_index);
+                        sw.text.insert(idx, "\n");
+                        sw.cursor_char_index = sw.text.line_to_char(line_index);
+
                         app.current_mode = Mode::Insert;
                         app.queue_selected_window_highlight_refresh();
                     }
                 }
                 'o' => {
                     if let Some(sw) = app.selected_window_mut() {
-                        let current_line = sw.text.char_to_line(sw.cursor_char_index);
-                        let next_line = sw.text.line_to_char(current_line + 1);
-                        sw.text.insert_char(next_line, '\n');
-                        sw.cursor_char_index = next_line;
+                        let line_index = sw.text.char_to_line(sw.cursor_char_index);
+                        let line_slice = sw.text.line(line_index);
+                        let idx = sw.text.line_to_char(line_index) + line_slice.len_chars();
+                        sw.text.insert(idx, "\n");
+                        sw.cursor_char_index = sw.text.line_to_char(line_index + 1);
+
                         app.current_mode = Mode::Insert;
                         app.queue_selected_window_highlight_refresh();
                     }
