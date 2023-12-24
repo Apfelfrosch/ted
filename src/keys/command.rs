@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{self, BufReader, BufWriter},
+    io::{self, BufRead, BufReader, BufWriter},
 };
 
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
@@ -109,8 +109,28 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                             app.log.log(to_log);
                         }
                         ["o" | "open", path] => match File::open(path) {
-                            Ok(f) => match Rope::from_reader(BufReader::new(f)) {
-                                Ok(rope) => {
+                            Ok(f) => {
+                                let mut reader = BufReader::new(f);
+                                let mut text = String::new();
+                                let mut line_buf = String::new();
+                                let cancel = loop {
+                                    line_buf.clear();
+                                    let res = reader.read_line(&mut line_buf);
+                                    match res {
+                                        Ok(0) => break false,
+                                        Ok(_) => {
+                                            let replaced = line_buf.replace('\t', "    ");
+                                            text.push_str(replaced.as_str());
+                                        }
+                                        Err(e) => {
+                                            app.log.log(format!("Could not open {path}: {:?}", e));
+                                            break true;
+                                        }
+                                    }
+                                };
+                                if !cancel {
+                                    let rope = Rope::from_str(text.as_str());
+
                                     let window_index = app.create_empty_window();
                                     let window = &mut app.edit_windows[window_index];
                                     window.text = rope;
@@ -122,9 +142,9 @@ pub fn process_keys_dialog(event: KeyEvent, app: &mut App) -> bool {
                                     }
                                     app.selected_window = app.edit_windows.len() - 1;
                                     app.log.log(format!("Successfully opened {path}"));
+                                    app.queue_selected_window_highlight_refresh();
                                 }
-                                Err(e) => app.log.log(format!("Could not open {path}: {:?}", e)),
-                            },
+                            }
                             Err(e) => app.log.log(format!("Could not open {path}: {:?}", e)),
                         },
                         ["settitle", new_title] => {

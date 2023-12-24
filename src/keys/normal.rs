@@ -1,5 +1,4 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
-use tree_sitter::TextProvider;
 
 use crate::frontend::{
     app::{App, Mode},

@@ -19,7 +19,7 @@ use std::{
     env,
     error::Error,
     fs::File,
-    io::{stderr, BufReader},
+    io::{stderr, BufRead, BufReader},
     sync::mpsc::{self, Sender, TryRecvError},
     thread,
     time::Duration,
@@ -172,20 +172,37 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         };
 
         match File::open(&path) {
-            Ok(f) => match Rope::from_reader(BufReader::new(f)) {
-                Ok(rope) => {
-                    x(rope);
+            Ok(f) => {
+                let mut reader = BufReader::new(f);
+                let mut text = String::new();
+                let mut line_buf = String::new();
+                let to_log = loop {
+                    line_buf.clear();
+                    let res = reader.read_line(&mut line_buf);
+                    match res {
+                        Ok(0) => break None,
+                        Ok(_) => {
+                            let replaced = line_buf.replace('\t', "    ");
+                            text.push_str(replaced.as_str());
+                        }
+                        Err(e) => {
+                            break Some(format!(
+                                "[STARTUP] Could not continue reading {path} due to {:?}",
+                                e
+                            ));
+                        }
+                    }
+                };
+                let rope = Rope::from_str(text.as_str());
+                x(rope);
+
+                if let Some(error_message) = to_log {
+                    app.log.log(error_message);
+                } else {
                     app.selected_window = app.edit_windows.len() - 1;
                     app.log.log(format!("[STARTUP] Successfully opened {path}"));
                 }
-                Err(e) => {
-                    x(Rope::new());
-                    app.log.log(format!(
-                        "[STARTUP] Could not open {path} due to {:?} -> created empty window",
-                        e
-                    ));
-                }
-            },
+            }
             Err(e) => {
                 x(Rope::new());
                 app.log.log(format!(
